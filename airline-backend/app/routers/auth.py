@@ -5,7 +5,7 @@ from pydantic import BaseModel, EmailStr
 
 from app.database import get_db
 from app.models.user import User
-from app.utils.security import (
+from app.core.security import (
     verify_password,
     get_password_hash,
     create_access_token
