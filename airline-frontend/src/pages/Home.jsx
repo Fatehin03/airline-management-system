@@ -5,18 +5,18 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* --- HERO SECTION --- */}
-      <div className="relative h-[85vh] w-full flex items-center justify-center overflow-hidden">
-        {/* Background Image with Zoom */}
+      {/* Increased height to h-[90vh] to give buttons more room before the cards start */}
+      <div className="relative h-[90vh] w-full flex items-center justify-center overflow-hidden">
+        {/* Background Image */}
         <div 
           className="absolute inset-0 bg-cover bg-center animate-slowZoom"
           style={{backgroundImage: "url('https://images.unsplash.com/photo-1436491865332-7a61a109c0f2?auto=format&fit=crop&w=1920&q=80')"}}
         ></div>
         
-        {/* Better Overlay for Contrast */}
         <div className="absolute inset-0 bg-slate-900/60"></div>
         
-        {/* Content Container */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 text-center text-white animate-fadeInUp">
+        {/* Added z-30 to ensure this text and buttons stay ON TOP of everything */}
+        <div className="relative z-30 w-full max-w-7xl mx-auto px-6 text-center text-white animate-fadeInUp">
           <div className="inline-flex items-center gap-2 bg-blue-500/20 backdrop-blur-md border border-blue-400/30 px-4 py-2 rounded-full mb-8">
             <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
             <span className="text-sm font-medium tracking-wide uppercase">New Routes Available</span>
@@ -50,7 +50,8 @@ const Home = () => {
       </div>
 
       {/* --- FEATURES SECTION --- */}
-      <div className="relative z-20 max-w-7xl mx-auto px-6 -mt-16">
+      {/* Lowered z-index to z-10 so it stays behind the Hero text/buttons if they overlap */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 -mt-20 md:-mt-24">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <FeatureCard 
             icon={<ShieldCheck size={32} />} 
@@ -70,29 +71,17 @@ const Home = () => {
         </div>
       </div>
 
-      {/* --- EXTRA STATS (Adds more content) --- */}
-      <div className="py-24 text-center">
+      {/* --- STATS SECTION --- */}
+      <div className="py-24 text-center bg-white">
         <div className="max-w-4xl mx-auto px-6">
-          <h2 className="text-4xl font-bold text-slate-900 mb-4 font-display">Trusted by Millions</h2>
-          <p className="text-slate-600 text-lg mb-12">Building the future of travel with technology and comfort.</p>
+          <h2 className="text-4xl font-bold text-slate-900 mb-4 font-display tracking-tight">Trusted by Millions</h2>
+          <p className="text-slate-500 text-lg mb-12">Building the future of travel with technology and comfort.</p>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div>
-              <div className="text-4xl font-black text-blue-600 mb-1">12M+</div>
-              <div className="text-sm uppercase tracking-widest text-slate-400 font-bold">Passengers</div>
-            </div>
-            <div>
-              <div className="text-4xl font-black text-blue-600 mb-1">150+</div>
-              <div className="text-sm uppercase tracking-widest text-slate-400 font-bold">Destinations</div>
-            </div>
-            <div>
-              <div className="text-4xl font-black text-blue-600 mb-1">24/7</div>
-              <div className="text-sm uppercase tracking-widest text-slate-400 font-bold">Support</div>
-            </div>
-            <div>
-              <div className="text-4xl font-black text-blue-600 mb-1">100%</div>
-              <div className="text-sm uppercase tracking-widest text-slate-400 font-bold">Eco-Friendly</div>
-            </div>
+            <StatItem label="Passengers" value="12M+" />
+            <StatItem label="Destinations" value="150+" />
+            <StatItem label="Support" value="24/7" />
+            <StatItem label="Eco-Friendly" value="100%" />
           </div>
         </div>
       </div>
@@ -100,14 +89,21 @@ const Home = () => {
   );
 };
 
-// Sub-component for clean code
+// Sub-components for cleaner code
 const FeatureCard = ({ icon, title, desc }) => (
-  <div className="bg-white p-8 rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-100 flex flex-col items-center text-center group hover:border-blue-300 transition-colors animate-fadeIn">
-    <div className="text-blue-600 mb-5 p-4 bg-blue-50 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors animate-float">
+  <div className="bg-white p-8 rounded-2xl shadow-2xl shadow-slate-200/60 border border-slate-100 flex flex-col items-center text-center group hover:border-blue-400/50 transition-all duration-300">
+    <div className="text-blue-600 mb-5 p-4 bg-blue-50 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 animate-float">
       {icon}
     </div>
-    <h3 className="text-xl font-bold text-slate-900 mb-2">{title}</h3>
-    <p className="text-slate-500 leading-relaxed">{desc}</p>
+    <h3 className="text-xl font-bold text-slate-900 mb-2 font-display">{title}</h3>
+    <p className="text-slate-500 leading-relaxed text-sm md:text-base">{desc}</p>
+  </div>
+);
+
+const StatItem = ({ label, value }) => (
+  <div className="p-4">
+    <div className="text-4xl font-black text-blue-600 mb-1 font-display tracking-tighter">{value}</div>
+    <div className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-slate-400 font-bold">{label}</div>
   </div>
 );
 
