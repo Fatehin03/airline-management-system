@@ -25,15 +25,15 @@ export const register = (formData) =>
   API.post("/auth/register", {
     email: formData.email,
     password: formData.password,
-    full_name: formData.fullName,
+    full_name: formData.fullName, // Ensure the key on the LEFT is 'full_name'
   });
 
 // FLIGHTS
 export const fetchFlights = (params) =>
-  API.get("/flights/flights/", { params });
+  API.get("/flights/flights", { params });
 
 // BOOKINGS
 export const bookFlight = (data) =>
-  API.post("/bookings/", data);
+  API.post("/bookings", data);
 
 export default API;
