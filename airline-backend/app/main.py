@@ -5,7 +5,7 @@ from app.core.settings import settings
 
 # Imports from your __init__.py setup
 from app.routers import auth_router, flight_router, booking_router
-
+from app.models import User, Flight, Booking
 # This will create all tables in your BRAND NEW database automatically
 Base.metadata.create_all(bind=engine)
 
