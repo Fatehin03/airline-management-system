@@ -14,7 +14,11 @@ app = FastAPI(title="SkyLink Airlines")
 # CORS setup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # For testing; replace with settings.FRONTEND_URL later
+    # Replace "*" with your actual frontend URL
+    allow_origins=[
+        "https://airline-frontend2.onrender.com",
+        "http://localhost:5173" 
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
