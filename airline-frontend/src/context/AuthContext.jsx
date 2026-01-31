@@ -39,12 +39,11 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logoutUser = () => {
-        localStorage.removeItem('token');
-        setUser(null);
-        // Using window.location.href ensures a clean state reset on logout
-        window.location.href = '/login';
-    };
-
+    localStorage.removeItem('token');
+    setUser(null);
+    // Use a small delay or ensure the path is exactly what is in main.jsx
+    window.location.replace('/login'); 
+};
     return (
         <AuthContext.Provider value={{ user, loginUser, logoutUser }}>
             {children}
