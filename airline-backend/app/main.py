@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.core.settings import settings
 
-# Corrected Imports using the __init__.py setup
+# Corrected Imports
 from app.routers import auth_router, flight_router, booking_router
 
 # Create Database Tables
@@ -11,18 +11,23 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="SkyLink Airlines")
 
-# CORS setup
+# --- THE CRITICAL FIX ---
+# You CANNOT use ["*"] if allow_credentials=True. 
+# You must list the specific frontend URL.
+origins = [
+    "https://airline-frontend2.onrender.com", # Your Production Frontend
+    "http://localhost:5173",                  # Your Local Frontend
+    "http://localhost:3000"                   # Alternate Local Frontend
+]
+
 app.add_middleware(
     CORSMiddleware,
-    # Replace "*" with your actual frontend URL
-    allow_origins=[
-        "https://airline-frontend2.onrender.com",
-        "http://localhost:5173" 
-    ],
+    allow_origins=origins,   # Use the specific list, NOT ["*"]
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# ------------------------
 
 # Include Routers
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
