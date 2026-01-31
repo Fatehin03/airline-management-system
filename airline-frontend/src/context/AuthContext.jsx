@@ -1,20 +1,19 @@
 import { createContext, useState, useEffect } from 'react';
-import { jwtDecode } from 'jwt-decode'; // FIXED: Added curly braces for named import
+import { jwtDecode } from 'jwt-decode'; 
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
 
-    // This effect runs once when the app starts
+    // This effect runs once when the app starts to persist the session
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
             try {
-                // Check if token is valid and decode user data
                 const decoded = jwtDecode(token);
                 
-                // Optional: Check if token is expired
+                // Check if token is expired
                 const currentTime = Date.now() / 1000;
                 if (decoded.exp < currentTime) {
                     console.warn("Token expired");
@@ -42,7 +41,7 @@ export const AuthProvider = ({ children }) => {
     const logoutUser = () => {
         localStorage.removeItem('token');
         setUser(null);
-        // Optional: Redirect to login page
+        // Using window.location.href ensures a clean state reset on logout
         window.location.href = '/login';
     };
 
