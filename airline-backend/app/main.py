@@ -3,26 +3,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.core.settings import settings
 
-# Corrected Imports
+# Imports from your __init__.py setup
 from app.routers import auth_router, flight_router, booking_router
 
-# --- DATABASE RESET LOGIC ---
-# This line deletes the old, broken tables (Fixes the 500 Error)
-Base.metadata.drop_all(bind=engine) 
-
-# This creates the new tables with the correct 'full_name' column
+# This will create all tables in your BRAND NEW database automatically
 Base.metadata.create_all(bind=engine)
-# ----------------------------
 
 app = FastAPI(title="SkyLink Airlines")
 
-# --- CORS CONFIGURATION ---
-# Wildcards ("*") do not work with allow_credentials=True. 
-# We must use explicit URLs.
+# --- THE DEFINITIVE CORS FIX ---
+# Note: You MUST use explicit URLs when allow_credentials=True
 origins = [
-    "https://airline-frontend2.onrender.com", # Your Production Frontend
-    "http://localhost:5173",                  # Vite/React Local
-    "http://localhost:3000",                  # Create-React-App Local
+    "https://airline-frontend2.onrender.com", # Your Production URL
+    "http://localhost:5173",                  # Local Development
 ]
 
 app.add_middleware(
@@ -40,4 +33,4 @@ app.include_router(booking_router, prefix="/bookings", tags=["Bookings"])
 
 @app.get("/")
 def root():
-    return {"status": "SkyLink API is online"}
+    return {"status": "SkyLink API is online and Database is fresh"}
