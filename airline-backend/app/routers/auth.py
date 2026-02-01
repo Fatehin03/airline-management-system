@@ -13,7 +13,7 @@ from app.core.security import (
 )
 import jwt
 from datetime import datetime, timedelta
-from app.core.settings import settings  # Assuming settings has SECRET_KEY and ACCESS_TOKEN_EXPIRE_MINUTES
+from app.core.settings import settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -147,9 +147,8 @@ def forgot_password(data: ForgotPasswordSchema, db: Session = Depends(get_db)):
         # Create reset token
         reset_token = create_reset_token({"sub": user.email})
         
-        # Generate reset link using environment variable
-        frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
-        reset_link = f"{frontend_url}/reset-password?token={reset_token}"
+        # Generate reset link using FRONTEND_URL from settings
+        reset_link = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}"
         
         # TODO: Implement actual email sending here (e.g., using smtplib or SendGrid)
         # For now, log the link to console for testing
