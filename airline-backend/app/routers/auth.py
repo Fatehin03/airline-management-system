@@ -145,7 +145,7 @@ def forgot_password(data: ForgotPasswordSchema, db: Session = Depends(get_db)):
             return {"message": "If an account exists, a reset link has been sent to your email"}
         
         # Create reset token
-        reset_token = create_reset_token({"sub": user.email})
+        reset_link = f"http://localhost:5173/reset-password?token={reset_token}"
         
         # Generate reset link (replace 'http://localhost:3000' with your actual frontend URL)
         reset_link = f"http://localhost:3000/reset-password?token={reset_token}"
