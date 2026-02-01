@@ -8,6 +8,8 @@ import Home from './pages/Home';
 import Flights from './pages/Flights';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 // 1. Updated Navbar to use Context
 const Navbar = () => {
@@ -25,7 +27,7 @@ const Navbar = () => {
         {user ? (
           <>
             <span className="text-blue-800 font-medium">Hi, {user.full_name || 'User'}</span>
-            <button 
+            <button
               onClick={logoutUser}
               className="text-red-500 hover:text-red-700 font-semibold transition"
             >
@@ -56,6 +58,8 @@ const App = () => {
         <Route path="/flights" element={<Flights />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="*" element={<div className="text-center py-20 text-2xl">Page Not Found</div>} />
       </Routes>
     </div>
