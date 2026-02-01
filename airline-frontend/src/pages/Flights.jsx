@@ -98,6 +98,9 @@ const Flights = () => {
           >
             Go to Login
           </Link>
+          <p className="mt-4 text-center text-sm text-gray-600">
+            <Link to="/forgot-password" className="text-blue-600 hover:underline">Forgot Password?</Link>
+          </p>
         </div>
       </div>
     );
