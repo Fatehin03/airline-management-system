@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect } from 'react';
-import { jwtDecode } from 'jwt-decode'; 
+import { jwtDecode } from 'jwt-decode';
 
 export const AuthContext = createContext();
 
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     setUser(null);
     // Redirecting to the base URL is safer for hosted apps
-    window.location.href = window.location.origin; 
+    window.location.href = window.location.origin;
 };
     return (
         <AuthContext.Provider value={{ user, loginUser, logoutUser }}>
