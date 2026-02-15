@@ -120,7 +120,7 @@ const Home = () => {
         {/* Particles / Stars */}
         <div className="absolute inset-0 z-0">
           <Canvas camera={{ position: [0, 0, 8] }}>
-            <ambientLight intensity={1.2} />
+            <ambientLight intensity={1.5} />
             <directionalLight position={[5, 5, 5]} intensity={2} />
             <Stars radius={100} depth={50} count={4000} factor={4} fade speed={2} />
             <Airplane />
