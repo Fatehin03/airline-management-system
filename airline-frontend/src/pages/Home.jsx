@@ -35,10 +35,24 @@ const Airplane = () => {
 
   return (
     <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5}>
-      <mesh ref={planeRef}>
-        <coneGeometry args={[0.2, 1.5, 16]} />
-        <meshStandardMaterial color="#60a5fa" metalness={0.9} roughness={0.2} />
-      </mesh>
+      <mesh ref={planeRef} rotation={[0, -Math.PI / 2, 0]}>
+  {/* The Main Body (Fuselage) */}
+  <capsuleGeometry args={[0.15, 2, 4, 16]} />
+  
+  {/* The Wings */}
+  <mesh rotation={[Math.PI / 2, 0, 0]}>
+    <boxGeometry args={[1.8, 0.05, 0.4]} />
+    <meshStandardMaterial color="#2563eb" />
+  </mesh>
+
+  {/* Tail Fin */}
+  <mesh position={[-0.8, 0.2, 0]} rotation={[0, 0, 0.5]}>
+    <boxGeometry args={[0.4, 0.4, 0.05]} />
+    <meshStandardMaterial color="#1e40af" />
+  </mesh>
+
+  <meshStandardMaterial color="#ffffff" metalness={0.8} roughness={0.2} />
+</mesh>
     </Float>
   );
 };
