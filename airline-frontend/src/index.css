@@ -748,3 +748,161 @@
   .stagger-animation > *:nth-child(5) { animation-delay: 0.5s; }
   .stagger-animation > *:nth-child(n+6) { animation-delay: 0.6s; }
 }
+/* ========================================
+   LUXURY AIRLINE HERO (WORLD MAP + FLIGHT ROUTES)
+   Non-destructive – Does NOT override existing styles
+   ======================================== */
+
+/* Animated curved flight path (like airline route map) */
+@keyframes routeDash {
+  0% {
+    stroke-dashoffset: 1200;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.flight-route-path {
+  stroke-dasharray: 14 10;
+  stroke-dashoffset: 1200;
+  animation: routeDash 20s linear infinite;
+}
+
+/* Glowing trail following the airplane */
+@keyframes trailGlow {
+  0% {
+    opacity: 0.3;
+    filter: drop-shadow(0 0 4px rgba(102, 126, 234, 0.4));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 18px rgba(102, 126, 234, 0.9));
+  }
+  100% {
+    opacity: 0.3;
+    filter: drop-shadow(0 0 4px rgba(102, 126, 234, 0.4));
+  }
+}
+
+.animate-trail-glow {
+  animation: trailGlow 2.5s ease-in-out infinite;
+}
+
+/* Plane auto flight across curved path (premium) */
+@keyframes planeAutoFlight {
+  0% {
+    offset-distance: 0%;
+    transform: rotate(0deg) scale(0.9);
+  }
+  25% {
+    transform: rotate(5deg) scale(1);
+  }
+  50% {
+    offset-distance: 50%;
+    transform: rotate(8deg) scale(1.05);
+  }
+  75% {
+    transform: rotate(3deg) scale(1);
+  }
+  100% {
+    offset-distance: 100%;
+    transform: rotate(0deg) scale(0.95);
+  }
+}
+
+.animate-plane-flight {
+  animation: planeAutoFlight 18s ease-in-out infinite;
+}
+
+/* Luxury parallax clouds (background depth) */
+@keyframes cloudParallaxOne {
+  0% {
+    transform: translateX(-20%) translateY(0px);
+  }
+  50% {
+    transform: translateX(40%) translateY(-12px);
+  }
+  100% {
+    transform: translateX(120%) translateY(0px);
+  }
+}
+
+@keyframes cloudParallaxTwo {
+  0% {
+    transform: translateX(120%) translateY(0px);
+  }
+  50% {
+    transform: translateX(30%) translateY(18px);
+  }
+  100% {
+    transform: translateX(-20%) translateY(0px);
+  }
+}
+
+.animate-cloud-parallax {
+  animation: cloudParallaxOne 90s linear infinite;
+  opacity: 0.18;
+}
+
+.animate-cloud-parallax-slow {
+  animation: cloudParallaxTwo 140s linear infinite;
+  opacity: 0.12;
+}
+
+/* Sky particle shimmer (ultra subtle luxury effect) */
+@keyframes skyParticles {
+  0% {
+    opacity: 0.1;
+    transform: translateY(0px);
+  }
+  50% {
+    opacity: 0.35;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 0.1;
+    transform: translateY(0px);
+  }
+}
+
+.animate-sky-particles {
+  animation: skyParticles 8s ease-in-out infinite;
+}
+
+/* Smooth fade for world map background */
+@keyframes mapFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+}
+
+.world-map-fade {
+  animation: mapFadeIn 2s ease-out forwards;
+  pointer-events: none;
+}
+
+/* Premium depth blur layer (cinematic airline feel) */
+.hero-depth-blur {
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* Route glow pulse (live airline network effect) */
+@keyframes routePulse {
+  0%, 100% {
+    stroke-opacity: 0.6;
+  }
+  50% {
+    stroke-opacity: 1;
+  }
+}
+
+.animate-route-pulse {
+  animation: routePulse 3s ease-in-out infinite;
+}
