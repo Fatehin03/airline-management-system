@@ -1,22 +1,24 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Float, OrbitControls, Stars } from "@react-three/drei";
+import { Float, OrbitControls, Stars, Environment } from "@react-three/drei";
 import { useRef, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, ShieldCheck, Globe, Clock } from "lucide-react";
 import * as THREE from "three";
 
-/* ================= 3D AIRPLANE ================= */
+/* ================= 3D AIRPLANE (PREMIUM JET STYLE) ================= */
 const Airplane = () => {
   const planeRef = useRef();
   const [progress, setProgress] = useState(0);
 
-  // Auto flight animation on load
   useEffect(() => {
     let start = 0;
     const animate = () => {
-      start += 0.002;
+      start += 0.0018; // smoother flight
       if (start <= 1) {
         setProgress(start);
+        requestAnimationFrame(animate);
+      } else {
+        start = 0; // loop flight like real airline route
         requestAnimationFrame(animate);
       }
     };
@@ -25,131 +27,175 @@ const Airplane = () => {
 
   useFrame(() => {
     if (planeRef.current) {
-      const x = -5 + progress * 10;
-      const y = Math.sin(progress * Math.PI) * 1.5;
-      const z = 0;
+      const x = -6 + progress * 12;
+      const y = Math.sin(progress * Math.PI) * 1.8;
+      const z = -progress * 1.5;
+
       planeRef.current.position.set(x, y, z);
-      planeRef.current.rotation.z = -0.1;
+      planeRef.current.rotation.z = -0.15;
+      planeRef.current.rotation.y = Math.PI / 2;
     }
   });
 
   return (
-    <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5}>
-      <mesh ref={planeRef} rotation={[0, -Math.PI / 2, 0]}>
-  {/* The Main Body (Fuselage) */}
-  <capsuleGeometry args={[0.15, 2, 4, 16]} />
-  
-  {/* The Wings */}
-  <mesh rotation={[Math.PI / 2, 0, 0]}>
-    <boxGeometry args={[1.8, 0.05, 0.4]} />
-    <meshStandardMaterial color="#2563eb" />
-  </mesh>
+    <Float speed={1.5} rotationIntensity={0.1} floatIntensity={0.3}>
+      <group ref={planeRef}>
+        {/* Fuselage */}
+        <mesh>
+          <capsuleGeometry args={[0.18, 2.4, 6, 24]} />
+          <meshStandardMaterial
+            color="#ffffff"
+            metalness={0.9}
+            roughness={0.15}
+          />
+        </mesh>
 
-  {/* Tail Fin */}
-  <mesh position={[-0.8, 0.2, 0]} rotation={[0, 0, 0.5]}>
-    <boxGeometry args={[0.4, 0.4, 0.05]} />
-    <meshStandardMaterial color="#1e40af" />
-  </mesh>
+        {/* Main Wings */}
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <boxGeometry args={[2.2, 0.06, 0.5]} />
+          <meshStandardMaterial color="#e5e7eb" metalness={0.8} />
+        </mesh>
 
-  <meshStandardMaterial color="#ffffff" metalness={0.8} roughness={0.2} />
-</mesh>
+        {/* Tail Wing */}
+        <mesh position={[0, 0, -1]} rotation={[Math.PI / 2, 0, 0]}>
+          <boxGeometry args={[0.9, 0.05, 0.3]} />
+          <meshStandardMaterial color="#cbd5f5" metalness={0.8} />
+        </mesh>
+
+        {/* Vertical Tail Fin */}
+        <mesh position={[0, 0.35, -1.1]}>
+          <boxGeometry args={[0.08, 0.6, 0.35]} />
+          <meshStandardMaterial color="#3b82f6" metalness={0.7} />
+        </mesh>
+
+        {/* Engine Glow (Luxury Effect) */}
+        <mesh position={[0.6, -0.1, 0.3]}>
+          <sphereGeometry args={[0.08, 16, 16]} />
+          <meshStandardMaterial
+            color="#60a5fa"
+            emissive="#3b82f6"
+            emissiveIntensity={2}
+          />
+        </mesh>
+      </group>
     </Float>
   );
 };
 
-/* ================= PARALLAX CLOUDS ================= */
+/* ================= PARALLAX CLOUDS (LUXURY DEPTH) ================= */
 const Clouds = () => {
   return (
     <div className="absolute inset-0 overflow-hidden z-10">
-      <div className="absolute top-20 left-0 w-96 h-40 bg-white/10 blur-3xl rounded-full animate-cloudMove"></div>
-      <div className="absolute bottom-20 right-0 w-[500px] h-40 bg-blue-300/10 blur-3xl rounded-full animate-cloudMoveSlow"></div>
+      <div className="absolute top-24 left-[-10%] w-[600px] h-56 bg-white/10 blur-3xl rounded-full animate-cloudMove"></div>
+      <div className="absolute bottom-20 right-[-10%] w-[700px] h-56 bg-blue-300/10 blur-3xl rounded-full animate-cloudMoveSlow"></div>
     </div>
   );
 };
 
-/* ================= WORLD MAP + ROUTES ================= */
+/* ================= WORLD MAP + LIVE ROUTES (AIRLINE STYLE) ================= */
 const WorldMapRoutes = () => {
   return (
     <svg
-      className="absolute inset-0 w-full h-full opacity-30 z-5"
+      className="absolute inset-0 w-full h-full opacity-40 z-5"
       viewBox="0 0 1200 600"
     >
-      {/* Curved Flight Routes */}
+      {/* Main Global Route */}
       <path
-        d="M 100 400 Q 600 50 1100 350"
+        d="M 80 420 Q 600 40 1120 320"
         stroke="#3b82f6"
-        strokeWidth="2"
+        strokeWidth="2.5"
         fill="none"
-        strokeDasharray="8 8"
+        strokeDasharray="10 10"
         className="animate-dash"
       />
+
+      {/* Secondary Route */}
       <path
-        d="M 200 500 Q 700 150 1000 200"
+        d="M 150 520 Q 650 180 1050 220"
         stroke="#60a5fa"
         strokeWidth="2"
         fill="none"
-        strokeDasharray="6 10"
+        strokeDasharray="6 12"
         className="animate-dashSlow"
+      />
+
+      {/* Glow Route (Premium Airline Network Effect) */}
+      <path
+        d="M 200 450 Q 600 120 980 360"
+        stroke="#93c5fd"
+        strokeWidth="1.5"
+        fill="none"
+        strokeDasharray="4 10"
+        opacity="0.8"
+        className="animate-dash"
       />
     </svg>
   );
 };
 
-/* ================= MAIN HOME ================= */
+/* ================= MAIN HOME (LUXURY AIRLINE HERO) ================= */
 const Home = () => {
   return (
     <div className="min-h-screen bg-[#020617] text-white overflow-hidden">
-      {/* ===== HERO SECTION ===== */}
       <section className="relative h-screen flex items-center justify-center">
 
-        {/* World Map Background */}
+        {/* Premium Aviation Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#020617]" />
+
+        {/* World Map Texture */}
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-20"
+          className="absolute inset-0 opacity-20"
           style={{
             backgroundImage:
               "url('https://images.unsplash.com/photo-1526772662000-3f88f10405ff?q=80&w=1920')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
           }}
         />
 
-        {/* Animated Routes */}
+        {/* Animated Airline Routes */}
         <WorldMapRoutes />
 
         {/* Parallax Clouds */}
         <Clouds />
 
-        {/* Particles / Stars */}
+        {/* 3D Luxury Scene */}
         <div className="absolute inset-0 z-0">
-          <Canvas camera={{ position: [0, 0, 8] }}>
-            <ambientLight intensity={2} />
-            <directionalLight position={[5, 5, 5]} intensity={2} />
-            <Stars radius={100} depth={50} count={4000} factor={4} fade speed={2} />
+          <Canvas camera={{ position: [0, 0, 9] }}>
+            <ambientLight intensity={1.8} />
+            <directionalLight position={[5, 6, 5]} intensity={2.5} />
+            <Environment preset="sunset" />
+            <Stars radius={120} depth={60} count={3500} factor={4} fade speed={1.5} />
             <Airplane />
-            <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.3} />
+            <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.15} />
           </Canvas>
         </div>
 
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-[#020617]/80 to-[#020617] z-10" />
+        {/* Luxury Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-[#020617]/80 to-[#020617] z-10" />
 
-        {/* Hero Content */}
+        {/* Hero Content (Airline Style) */}
         <div className="relative z-20 text-center px-6 max-w-6xl">
-          <div className="inline-block px-6 py-2 mb-6 rounded-full bg-blue-500/10 backdrop-blur-xl border border-blue-400/20 tracking-widest text-sm">
-            GLOBAL LUXURY AIRLINES
+          <div className="inline-block px-6 py-2 mb-6 rounded-full bg-blue-500/10 backdrop-blur-xl border border-blue-400/20 tracking-widest text-sm font-semibold text-blue-300">
+            PREMIUM GLOBAL AIRLINES
           </div>
 
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-black leading-tight mb-6">
-            Fly Across the <span className="text-blue-400">World</span> in Luxury
+            Experience the Future of{" "}
+            <span className="text-blue-400 drop-shadow-[0_0_25px_rgba(59,130,246,0.8)]">
+              Air Travel
+            </span>
           </h1>
 
-          <p className="max-w-2xl mx-auto text-lg md:text-xl text-gray-300 mb-12 font-light">
-            Experience cinematic airline booking with real-time routes,
-            3D flight animation, and next-generation luxury UI design.
+          <p className="max-w-2xl mx-auto text-lg md:text-xl text-gray-300 mb-12 font-light leading-relaxed">
+            Seamless flight management, real-time global routes, and cinematic
+            aviation experience designed for next-generation airline systems.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Link
               to="/flights"
-              className="group bg-blue-600 hover:bg-blue-700 px-10 py-4 rounded-2xl font-bold text-lg flex items-center gap-2 transition-all hover:scale-105 shadow-[0_0_40px_rgba(59,130,246,0.6)]"
+              className="group bg-blue-600 hover:bg-blue-700 px-10 py-4 rounded-2xl font-bold text-lg flex items-center gap-2 transition-all hover:scale-105 shadow-[0_0_60px_rgba(59,130,246,0.6)]"
             >
               Explore Flights
               <ArrowRight size={20} className="group-hover:translate-x-1 transition" />
