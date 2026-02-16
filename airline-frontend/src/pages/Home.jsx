@@ -129,7 +129,7 @@ const Home = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <DestinationCard city="Dubai" img="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=600" />
           <DestinationCard city="London" img="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=600" />
-          <DestinationCard city="Singapore" img="https://images.unsplash.com/photo-1525625230556-8e8ad285396e?q=80&w=600" />
+          <DestinationCard city="Singapore" img="https://images.unsplash.com/photo-1557591403-8b0f5018a4ef?auto=format&fit=crop&q=80&w=800" />
           <DestinationCard city="New York" img="https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=600" />
         </div>
       </section>
