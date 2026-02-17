@@ -18,6 +18,24 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} /> {/* Add this line */}
             <Route path="/flights" element={<Flights />} />
+            <Route
+                path="/profile/passenger"
+                element={
+                            <ProtectedRoute allowedRoles={['passenger']}>
+                                <PassengerProfile />
+                            </ProtectedRoute>
+                        }
+            />
+
+            <Route
+                path="/profile/staff"
+                element={
+                            <ProtectedRoute allowedRoles={['staff']}>
+                                <StaffProfile />
+                            </ProtectedRoute>
+                        }
+            />
+            
           </Routes>
         </div>
       </Router>
