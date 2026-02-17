@@ -8,6 +8,7 @@ ENV/
 .env
 airline-backend/.env
 tests/
+migrate_add_roles.py
 
 # --- Frontend / Node ---
 node_modules/
