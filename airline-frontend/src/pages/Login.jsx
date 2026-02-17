@@ -151,7 +151,7 @@ const Login = () => {
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  {selectedRole === 'staff' ? '🎫' : '✈️'} Sign In as {selectedRole === 'staff' ? 'Staff' : 'Passenger'}
+                  {selectedRole === 'staff' ? '🎫' : '✈️'} Login as {selectedRole === 'staff' ? 'Staff' : 'Passenger'}
                 </span>
               )}
             </button>
