@@ -76,7 +76,7 @@ const Login = () => {
               <input
                 type="email"
                 placeholder="you@skylink.com"
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 px-4 text-white placeholder-gray-600 focus:border-[#667eea]/50 focus:bg-white/10 transition-all outline-none"
+                className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 px-4 !text-white !bg-white/5 placeholder-gray-500 focus:border-[#667eea]/50 focus:!bg-white/10 transition-all outline-none"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
@@ -91,7 +91,7 @@ const Login = () => {
               <input
                 type="password"
                 placeholder="••••••••••"
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 px-4 text-white placeholder-gray-600 focus:border-[#667eea]/50 focus:bg-white/10 transition-all outline-none"
+                className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 px-4 !text-white !bg-white/5 placeholder-gray-500 focus:border-[#667eea]/50 focus:!bg-white/10 transition-all outline-none"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 required
