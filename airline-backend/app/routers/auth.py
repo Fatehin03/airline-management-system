@@ -1,3 +1,4 @@
+# app/routers/auth.py
 from typing import Optional
 import logging
 from datetime import datetime, timedelta, timezone
@@ -26,6 +27,8 @@ class RegisterSchema(BaseModel):
     email: EmailStr
     password: str
     full_name: Optional[str] = None
+    role: Optional[str] = "passenger"        # "passenger" | "staff"
+    employee_id: Optional[str] = None        # Required if role == "staff"
 
 class ForgotPasswordSchema(BaseModel):
     email: EmailStr
@@ -35,16 +38,14 @@ class ResetPasswordSchema(BaseModel):
     password: str
 
 # Reset password token settings
-RESET_TOKEN_EXPIRE_MINUTES = 30  # Token expires in 30 minutes
+RESET_TOKEN_EXPIRE_MINUTES = 30
 
-# Helper function to create reset token
 def create_reset_token(data: dict):
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(minutes=RESET_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire, "type": "reset"})
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
-# Helper function to verify reset token
 def verify_reset_token(token: str):
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
@@ -62,24 +63,63 @@ def verify_reset_token(token: str):
 @router.post("/register", status_code=201)
 def register(user_data: RegisterSchema, db: Session = Depends(get_db)):
     try:
-        logger.info(f"Registration attempt for email: {user_data.email}")
-       
+        logger.info(f"Registration attempt for email: {user_data.email}, role: {user_data.role}")
+
+        # ── Block admin registration from this site ─────────────────
+        if user_data.role == "admin":
+            raise HTTPException(
+                status_code=403,
+                detail="Admin accounts cannot be created here. Use the Admin Portal."
+            )
+
+        # ── Validate role value ─────────────────────────────────────
+        allowed_roles = ["passenger", "staff"]
+        if user_data.role not in allowed_roles:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid role. Allowed: {', '.join(allowed_roles)}"
+            )
+
+        # ── Staff must provide employee_id ──────────────────────────
+        if user_data.role == "staff":
+            if not user_data.employee_id or not user_data.employee_id.strip():
+                raise HTTPException(
+                    status_code=400,
+                    detail="Employee ID is required for staff accounts"
+                )
+            # Check employee_id uniqueness
+            existing_emp = db.query(User).filter(
+                User.employee_id == user_data.employee_id.upper()
+            ).first()
+            if existing_emp:
+                raise HTTPException(
+                    status_code=400,
+                    detail="This Employee ID is already registered"
+                )
+
+        # ── Check email uniqueness ──────────────────────────────────
         existing_user = db.query(User).filter(User.email == user_data.email).first()
         if existing_user:
             logger.warning(f"Email already registered: {user_data.email}")
             raise HTTPException(status_code=400, detail="Email already registered")
+
         hashed_pwd = get_password_hash(user_data.password)
         new_user = User(
             email=user_data.email,
             full_name=user_data.full_name,
-            hashed_password=hashed_pwd
+            hashed_password=hashed_pwd,
+            role=user_data.role,
+            employee_id=user_data.employee_id.upper() if user_data.employee_id else None,
         )
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
-       
-        logger.info(f"User registered successfully: {user_data.email}")
+
+        logger.info(f"User registered successfully: {user_data.email} as {user_data.role}")
         return {"message": "User created successfully"}
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Registration error: {str(e)}", exc_info=True)
         db.rollback()
@@ -96,34 +136,60 @@ def login(
     try:
         logger.info(f"Login attempt for: {form_data.username}")
         user = db.query(User).filter(User.email == form_data.username).first()
-       
+
         if not user:
             logger.warning(f"User not found: {form_data.username}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password"
             )
-       
+
+        # ── Block admin login from this site ────────────────────────
+        if user.role == "admin":
+            raise HTTPException(
+                status_code=403,
+                detail="Admin accounts must sign in through the Admin Portal."
+            )
+
+        # ── Block inactive accounts ─────────────────────────────────
+        if not user.is_active:
+            raise HTTPException(
+                status_code=403,
+                detail="This account has been deactivated. Contact support."
+            )
+
         logger.info(f"User found: {user.email}, checking password...")
         password_valid = verify_password(form_data.password, user.hashed_password)
         logger.info(f"Password valid: {password_valid}")
-       
+
         if not password_valid:
             logger.warning(f"Invalid password for user: {form_data.username}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password"
             )
-        access_token = create_access_token(data={"sub": user.email})
-        logger.info(f"Login successful for: {user.email}")
+
+        # ── Create JWT with role, full_name, employee_id ────────────
+        access_token = create_access_token(data={
+            "sub":         user.email,
+            "role":        user.role,
+            "full_name":   user.full_name or "",
+            "employee_id": user.employee_id or "",
+            "user_id":     user.id,
+        })
+
+        logger.info(f"Login successful for: {user.email} ({user.role})")
         return {
             "access_token": access_token,
-            "token_type": "bearer"
+            "token_type":   "bearer",
+            "role":         user.role,        # ← frontend uses this to redirect
+            "full_name":    user.full_name,
         }
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Login error: {str(e)}", exc_info=True)
-        if isinstance(e, HTTPException):
-            raise
         raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
 
 # =========================
@@ -134,22 +200,17 @@ def forgot_password(data: ForgotPasswordSchema, db: Session = Depends(get_db)):
     try:
         logger.info(f"Password reset request for: {data.email}")
         user = db.query(User).filter(User.email == data.email).first()
-        
+
         if not user:
-            # For security, don't reveal if email exists
             logger.warning(f"Reset requested for non-existent email: {data.email}")
             return {"message": "If an account exists, a reset link has been sent to your email"}
-        
-        # Create reset token
+
         reset_token = create_reset_token({"sub": user.email})
-        
-        # Generate reset link using FRONTEND_URL from settings
         reset_link = f"{settings.FRONTEND_URL}/#/reset-password?token={reset_token}"
-        
+
         if not settings.SMTP_HOST:
             logger.warning("SMTP_HOST not set; cannot send reset email")
             logger.info(f"Password reset link for {data.email}: {reset_link}")
-            # Return link in response for development/testing
             return {"message": "Reset link generated", "reset_link": reset_link}
         else:
             email_sent = send_reset_email(data.email, reset_link)
@@ -157,9 +218,9 @@ def forgot_password(data: ForgotPasswordSchema, db: Session = Depends(get_db)):
                 logger.info(f"Password reset email sent to {data.email}")
                 return {"message": "If an account exists, a reset link has been sent to your email"}
             else:
-                # Fallback: return the link if email fails
                 logger.warning(f"Email failed; reset link returned in response: {reset_link}")
                 return {"message": "Email delivery failed, but reset link is below", "reset_link": reset_link}
+
     except Exception as e:
         logger.error(f"Forgot password error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to process reset request")
@@ -172,21 +233,21 @@ def reset_password(data: ResetPasswordSchema, db: Session = Depends(get_db)):
     try:
         logger.info("Password reset attempt")
         email = verify_reset_token(data.token)
-        
+
         user = db.query(User).filter(User.email == email).first()
         if not user:
             logger.warning(f"User not found for reset: {email}")
             raise HTTPException(status_code=404, detail="User not found")
-        
-        # Update password
+
         hashed_pwd = get_password_hash(data.password)
         user.hashed_password = hashed_pwd
         db.commit()
-        
+
         logger.info(f"Password reset successful for: {email}")
         return {"message": "Password reset successfully"}
-    except HTTPException as he:
-        raise he
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Reset password error: {str(e)}", exc_info=True)
         db.rollback()
