@@ -5,9 +5,9 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Flights from './pages/Flights';
-import PassengerProfile from './pages/PassengerProfile';  // Add this import
-import StaffProfile from './pages/StaffProfile';          // Add this import
-import ProtectedRoute from './components/ProtectedRoute'; // Add this import (create if needed)
+import PassengerProfile from './pages/PassengerProfile';
+import StaffProfile from './pages/StaffProfile';
+import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 
 function App() {
