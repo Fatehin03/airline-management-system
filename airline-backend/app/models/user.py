@@ -3,9 +3,10 @@ from app.database import Base
 
 class User(Base):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True)
+    id              = Column(Integer, primary_key=True, index=True)
+    email           = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    full_name = Column(String)
-    is_active = Column(Boolean, default=True)
-    role = Column(String, default="passenger") # passenger, admin, staff
+    full_name       = Column(String)
+    is_active       = Column(Boolean, default=True)
+    role            = Column(String, default="passenger")  # passenger | staff
+    employee_id     = Column(String, unique=True, nullable=True, index=True)
