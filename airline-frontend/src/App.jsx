@@ -10,7 +10,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/flights" element={<Flights />} />
 
-
+ 
 
 <Routes>
   {/* TEST ROUTE - you should see this big green message on the homepage */}
