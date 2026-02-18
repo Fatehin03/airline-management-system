@@ -9,16 +9,9 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/flights" element={<Flights />} />
-            <Route path="/profile/passenger" element={
-              <ProtectedRoute allowedRoles={['passenger']}>
-                <PassengerProfile />
-              </ProtectedRoute>
-            } />
-            <Route path="/profile/staff" element={
-              <ProtectedRoute allowedRoles={['staff']}>
-                <StaffProfile />
-              </ProtectedRoute>
-            } />
+            {/* Temporary test */}
+<Route path="/profile/passenger" element={<PassengerProfile />} />
+<Route path="/profile/staff" element={<StaffProfile />} />
             <Route path="*" element={<div className="text-center p-10">Page not found</div>} />
           </Routes>
         </div>
