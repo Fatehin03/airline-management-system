@@ -1,15 +1,3 @@
-// airline-frontend/src/App.jsx
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Flights from './pages/Flights';
-import PassengerProfile from './pages/PassengerProfile';
-import StaffProfile from './pages/StaffProfile';
-import ProtectedRoute from './components/ProtectedRoute';
-import { AuthProvider } from './context/AuthContext';
-
 function App() {
   return (
     <AuthProvider>
@@ -21,23 +9,16 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/flights" element={<Flights />} />
-            <Route
-              path="/profile/passenger"
-              element={
-                <ProtectedRoute allowedRoles={['passenger']}>
-                  <PassengerProfile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile/staff"
-              element={
-                <ProtectedRoute allowedRoles={['staff']}>
-                  <StaffProfile />
-                </ProtectedRoute>
-              }
-            />
-            {/* Optional: Add a catch-all for 404 */}
+            <Route path="/profile/passenger" element={
+              <ProtectedRoute allowedRoles={['passenger']}>
+                <PassengerProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile/staff" element={
+              <ProtectedRoute allowedRoles={['staff']}>
+                <StaffProfile />
+              </ProtectedRoute>
+            } />
             <Route path="*" element={<div className="text-center p-10">Page not found</div>} />
           </Routes>
         </div>
