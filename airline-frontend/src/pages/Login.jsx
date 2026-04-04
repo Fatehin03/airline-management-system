@@ -3,12 +3,13 @@ import { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Canvas } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
+import { jwtDecode } from 'jwt-decode';
 import { login } from '../api';
 import { AuthContext } from '../context/AuthContext';
 
 const Login = () => {
   const [selectedRole, setSelectedRole] = useState('passenger');
-  const [formData, setFormData]         = useState({ email: '', password: '' });
+  const [formData, setFormData]         = useState({ email: '', password: '', staff_id: '' });
   const [error, setError]               = useState('');
   const [loading, setLoading]           = useState(false);
   const { loginUser }                   = useContext(AuthContext);
@@ -24,40 +25,29 @@ const Login = () => {
     : { ring: 'rgba(102,126,234,0.7)', glow: 'rgba(102,126,234,0.2)', border: 'border-[#667eea]/30', bg: 'bg-[#667eea]/10', text: 'text-[#667eea]', active: 'from-[#667eea] to-[#764ba2]' };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError("");
-
-  try {
-    const { data } = await login({ ...formData, role: selectedRole });
-
-    const apiRole = (data?.role || data?.user?.role || selectedRole)?.toLowerCase();
-    const chosenRole = selectedRole.toLowerCase();
-
-    if (apiRole !== chosenRole) {
-      setError(
-        `This account belongs to ${apiRole}. Please use the ${apiRole} login tab.`
-      );
-      return;
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      const { data } = await login({ ...formData, role: selectedRole });
+      if (selectedRole === 'staff') {
+        const decoded = jwtDecode(data.access_token);
+        const userEmployeeId = String(decoded.employee_id || '').toUpperCase();
+        const inputStaffId = (formData.staff_id || '').toUpperCase();
+        if (!inputStaffId || userEmployeeId !== inputStaffId) {
+          throw new Error('Invalid Staff ID for this account');
+        }
+      }
+      loginUser(data.access_token);
+      const role = data.role || data.user?.role;
+      if (role === 'staff') navigate('/profile/staff');
+      else navigate('/profile/passenger');
+    } catch (err) {
+      setError(err.response?.data?.detail || err.message || 'Invalid email or password');
+    } finally {
+      setLoading(false);
     }
-
-    loginUser(data.access_token, {
-      ...(data?.user || {}),
-      role: chosenRole,
-      email: data?.user?.email || formData.email,
-      full_name: data?.user?.full_name || data?.user?.name || "",
-    });
-
-    navigate(
-      chosenRole === "staff" ? "/profile/staff" : "/profile/passenger",
-      { replace: true }
-    );
-  } catch (err) {
-    setError(err.response?.data?.detail || "Invalid email or password");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="dark-page relative min-h-screen bg-[#030712] flex items-center justify-center overflow-hidden">
@@ -159,6 +149,22 @@ const Login = () => {
               />
             </div>
 
+            {selectedRole === 'staff' && (
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
+                  Staff ID
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. STAFF-001"
+                  value={formData.staff_id}
+                  onChange={(e) => setFormData({ ...formData, staff_id: e.target.value.toUpperCase() })}
+                  required={selectedRole === 'staff'}
+                  disabled={loading}
+                />
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={loading}
@@ -178,6 +184,11 @@ const Login = () => {
 
           {/* Footer */}
           <div className="mt-6 space-y-3 text-center">
+            <p className="text-sm text-gray-500">
+              <Link to="/forgot-password" className={`font-semibold transition-colors ${accentColor.text} hover:opacity-80`}>
+                Forgot password?
+              </Link>
+            </p>
             <p className="text-gray-500 text-sm">
               Don't have an account?{' '}
               <Link to="/register" className={`font-semibold transition-colors ${accentColor.text} hover:opacity-80`}>
