@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, ShieldCheck, Globe, Clock, Plane, MapPin, Calendar, Users } from "lucide-react";
 import Lottie from "lottie-react";
 import airplaneAnimation from "../assets/airplane.json";
-
+import DestinationCard from "../components/DestinationCard";
 /* ================= COMPOSITE FLIGHT STAGE ================= 
    This component houses both the path and the plane so they align.
 ============================================================ */
