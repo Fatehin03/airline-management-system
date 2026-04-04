@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { LogOut, User, Plane } from "lucide-react";
@@ -6,14 +6,18 @@ import { LogOut, User, Plane } from "lucide-react";
 const Navbar = () => {
   const { user, logoutUser } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const firstName =
     user?.full_name?.split(" ")[0] ||
     user?.name?.split(" ")[0] ||
     user?.email?.split("@")[0] ||
-    "Passenger";
+    "User";
 
-  const profilePath = user?.role === "staff" ? "/profile/staff" : "/profile/passenger";
+  const isStaffArea = location.pathname.startsWith("/profile/staff");
+  const profilePath = isStaffArea || user?.role === "staff"
+    ? "/profile/staff"
+    : "/profile/passenger";
 
   const handleLogout = async () => {
     try {
@@ -23,13 +27,14 @@ const Navbar = () => {
     }
   };
 
+  const goToProfile = () => {
+    navigate(profilePath);
+  };
+
   return (
     <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#030712]/85 backdrop-blur-2xl text-white shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-6">
-        <Link
-          to="/"
-          className="group inline-flex items-center gap-3 min-w-0"
-        >
+        <Link to="/" className="inline-flex items-center gap-3 min-w-0">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-400/20 bg-amber-500/10 text-amber-400 shadow-lg">
             <Plane size={18} />
           </div>
@@ -62,14 +67,15 @@ const Navbar = () => {
         <div className="flex items-center gap-3">
           {user ? (
             <>
-              <Link
-                to={profilePath}
+              <button
+                type="button"
+                onClick={goToProfile}
                 className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white hover:border-amber-400/30 hover:bg-white/10 hover:text-amber-300 transition-all"
                 title="Open profile"
               >
                 <User size={16} className="text-amber-400" />
                 <span className="max-w-[140px] truncate">Hi, {firstName}</span>
-              </Link>
+              </button>
 
               <button
                 onClick={handleLogout}
