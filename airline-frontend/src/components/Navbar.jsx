@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { LogOut, User, Plane } from "lucide-react";
+import { LogOut, User } from "lucide-react";
+import Lottie from "lottie-react";
+import logoAnimation from "../assets/logo.json";
 
 const Navbar = () => {
   const { user, logoutUser } = useContext(AuthContext);
@@ -18,48 +20,50 @@ const Navbar = () => {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#030712]/85 backdrop-blur-2xl text-white shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-6">
-        <Link to="/" className="inline-flex items-center gap-3 min-w-0">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-400/20 bg-amber-500/10 text-amber-400 shadow-lg">
-            <Plane size={18} />
-          </div>
-
-          <div className="leading-tight min-w-0">
-            <p className="text-lg font-bold tracking-[0.18em] text-white">
-              SKYLINK
-            </p>
-            <p className="text-[11px] uppercase tracking-[0.35em] text-amber-300/80">
-              Airlines
-            </p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+        <Link to="/" className="inline-flex items-center min-w-0 shrink-0" aria-label="SkyLink Home">
+          <div className="w-24 sm:w-28 md:w-32 lg:w-36 xl:w-40">
+            <Lottie animationData={logoAnimation} loop autoplay />
           </div>
         </Link>
 
-        <div className="hidden md:flex items-center gap-6 text-sm font-medium">
+        <div className="ml-auto flex items-center gap-2 sm:gap-3 md:gap-4 lg:gap-5 flex-wrap justify-end">
           <Link
             to="/"
-            className="text-gray-300 hover:text-amber-300 transition-colors"
+            className="rounded-full border border-white/10 bg-white/5 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-white/10 hover:text-amber-300 transition-all"
           >
             Home
           </Link>
           <Link
             to="/flights"
-            className="text-gray-300 hover:text-amber-300 transition-colors"
+            className="rounded-full border border-white/10 bg-white/5 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-white/10 hover:text-amber-300 transition-all"
           >
             Flights
           </Link>
-        </div>
+          <Link
+            to="/login"
+            className="rounded-full border border-white/10 bg-white/5 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-white/10 hover:text-amber-300 transition-all"
+          >
+            Login
+          </Link>
 
-        <div className="flex items-center gap-3">
+          <Link
+            to="/register"
+            className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold text-black hover:scale-[1.02] transition-all"
+          >
+            Register
+          </Link>
+
           {user ? (
             <>
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-white">
                 <User size={16} className="text-amber-400" />
                 Hi, {firstName}
               </span>
 
               <Link
                 to={profilePath}
-                className="inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-200 hover:bg-amber-500/20 transition-all"
+                className="inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-500/10 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-amber-200 hover:bg-amber-500/20 transition-all"
               >
                 <User size={16} />
                 Profile
@@ -68,29 +72,13 @@ const Navbar = () => {
               <button
                 type="button"
                 onClick={logoutUser}
-                className="inline-flex items-center gap-2 rounded-full border border-red-400/15 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-200 hover:bg-red-500/20 hover:text-red-100 transition-all"
+                className="inline-flex items-center gap-2 rounded-full border border-red-400/15 bg-red-500/10 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-red-200 hover:bg-red-500/20 hover:text-red-100 transition-all"
               >
                 <LogOut size={16} />
                 Logout
               </button>
             </>
-          ) : (
-            <>
-              <Link
-                to="/login"
-                className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10 hover:text-amber-300 transition-all"
-              >
-                Login
-              </Link>
-
-              <Link
-                to="/register"
-                className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-2 text-sm font-bold text-black hover:scale-[1.02] transition-all"
-              >
-                Register
-              </Link>
-            </>
-          )}
+          ) : null}
         </div>
       </div>
     </nav>
