@@ -131,25 +131,25 @@ const Home = () => {
     city="Dubai"
     code="DXB"
     img="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=600"
-    href="/search?destination=Dubai"
+    href="/flights?destination=Dubai"
   />
   <DestinationCard
     city="London"
     code="LON"
     img="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=600"
-    href="/search?destination=London"
+    href="/flights?destination=London"
   />
   <DestinationCard
     city="Switzerland"
     code="ZRH"
     img="https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?q=80&w=800&auto=format&fit=crop"
-    href="/search?destination=Switzerland"
+    href="/flights?destination=Switzerland"
   />
   <DestinationCard
     city="New York"
     code="NYC"
     img="https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=600"
-    href="/search?destination=New%20York"
+    href="/flights?destination=New%20York"
   />
 </div>
       </section>
