@@ -24,7 +24,7 @@ const Navbar = () => {
           <img
             src={brandLogo}
             alt="Skylink Airlines"
-            className="h-11 w-auto object-contain"
+            className="h-14 w-auto object-contain"
           />
         </Link>
 
