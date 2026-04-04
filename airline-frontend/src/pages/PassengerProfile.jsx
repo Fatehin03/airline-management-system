@@ -180,7 +180,7 @@ const PassengerProfile = () => {
           }`}
         >
           {toast.type === "warning" ? (
-            <CircleAlert size={18} />
+            <AlertCircle size={18} />
           ) : (
             <CheckCircle2 size={18} />
           )}
