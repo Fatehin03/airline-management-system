@@ -31,24 +31,27 @@ const Login = () => {
   try {
     const { data } = await login({ ...formData, role: selectedRole });
 
-    const apiRole = data?.role || data?.user?.role || selectedRole;
+    const apiRole = (data?.role || data?.user?.role || selectedRole)?.toLowerCase();
+    const chosenRole = selectedRole.toLowerCase();
 
-    // Stop wrong portal access
-    if (apiRole !== selectedRole) {
+    if (apiRole !== chosenRole) {
       setError(
         `This account belongs to ${apiRole}. Please use the ${apiRole} login tab.`
       );
-      setLoading(false);
       return;
     }
 
-    loginUser(data.access_token);
+    loginUser(data.access_token, {
+      ...(data?.user || {}),
+      role: apiRole,
+      email: data?.user?.email || formData.email,
+      full_name: data?.user?.full_name || data?.user?.name || "",
+    });
 
-    if (selectedRole === "staff") {
-      navigate("/profile/staff", { replace: true });
-    } else {
-      navigate("/profile/passenger", { replace: true });
-    }
+    navigate(
+      apiRole === "staff" ? "/profile/staff" : "/profile/passenger",
+      { replace: true }
+    );
   } catch (err) {
     setError(err.response?.data?.detail || "Invalid email or password");
   } finally {
