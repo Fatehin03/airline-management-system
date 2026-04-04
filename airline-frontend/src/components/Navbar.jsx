@@ -1,37 +1,97 @@
-import { Link } from 'react-router-dom';
-import { useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { Link, useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
+import { LogOut, User, Plane } from "lucide-react";
 
 const Navbar = () => {
   const { user, logoutUser } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const firstName =
+    user?.full_name?.split(" ")[0] ||
+    user?.name?.split(" ")[0] ||
+    user?.email?.split("@")[0] ||
+    "Passenger";
+
+  const profilePath = user?.role === "staff" ? "/profile/staff" : "/profile/passenger";
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser?.();
+    } finally {
+      navigate("/login");
+    }
+  };
 
   return (
-    <nav className="bg-blue-800 text-white shadow-lg">
-      <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <Link to="/" className="text-2xl font-bold tracking-tighter">
-          SKYLINK <span className="font-light text-blue-200">AIRLINES</span>
+    <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#030712]/85 backdrop-blur-2xl text-white shadow-[0_10px_40px_rgba(0,0,0,0.25)]">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-6">
+        <Link
+          to="/"
+          className="group inline-flex items-center gap-3 min-w-0"
+        >
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-400/20 bg-amber-500/10 text-amber-400 shadow-lg">
+            <Plane size={18} />
+          </div>
+
+          <div className="leading-tight min-w-0">
+            <p className="text-lg font-bold tracking-[0.18em] text-white">
+              SKYLINK
+            </p>
+            <p className="text-[11px] uppercase tracking-[0.35em] text-amber-300/80">
+              Airlines
+            </p>
+          </div>
         </Link>
-        
-        <div className="space-x-6 flex items-center">
-          <Link to="/flights" className="hover:text-blue-200">Search Flights</Link>
-          
+
+        <div className="hidden md:flex items-center gap-6 text-sm font-medium">
+          <Link
+            to="/"
+            className="text-gray-300 hover:text-amber-300 transition-colors"
+          >
+            Home
+          </Link>
+          <Link
+            to="/flights"
+            className="text-gray-300 hover:text-amber-300 transition-colors"
+          >
+            Flights
+          </Link>
+        </div>
+
+        <div className="flex items-center gap-3">
           {user ? (
             <>
-              {/* Added optional chaining ?. and fallback to email if name is missing */}
-              <span className="text-sm bg-blue-700 px-3 py-1 rounded">
-                Hi, {user.full_name || user.email || 'User'}
-              </span>
-              <button 
-                onClick={logoutUser} 
-                className="text-red-300 hover:text-red-100 font-medium transition-colors"
+              <Link
+                to={profilePath}
+                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white hover:border-amber-400/30 hover:bg-white/10 hover:text-amber-300 transition-all"
+                title="Open profile"
               >
+                <User size={16} className="text-amber-400" />
+                <span className="max-w-[140px] truncate">Hi, {firstName}</span>
+              </Link>
+
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2 rounded-full border border-red-400/15 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-200 hover:bg-red-500/20 hover:text-red-100 transition-all"
+              >
+                <LogOut size={16} />
                 Logout
               </button>
             </>
           ) : (
             <>
-              <Link to="/login" className="hover:text-blue-200">Login</Link>
-              <Link to="/register" className="bg-white text-blue-800 px-4 py-2 rounded font-bold hover:bg-blue-50 transition-colors">
+              <Link
+                to="/login"
+                className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10 hover:text-amber-300 transition-all"
+              >
+                Login
+              </Link>
+
+              <Link
+                to="/register"
+                className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-2 text-sm font-bold text-black hover:scale-[1.02] transition-all"
+              >
                 Register
               </Link>
             </>
