@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { Canvas } from "@react-three/fiber";
+import { Stars } from "@react-three/drei";
 import { forgotPassword } from '../api';
 import { Copy, Check } from 'lucide-react';
 
@@ -37,25 +39,32 @@ const ForgotPassword = () => {
 
   if (success) {
     return (
-      <div className="flex items-center justify-center min-h-[80vh]">
-        <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md border border-gray-100">
-          <h2 className="text-3xl font-bold mb-6 text-center text-blue-800">Reset Link Ready</h2>
+      <div className="dark-page relative min-h-screen bg-[#030712] flex items-center justify-center overflow-hidden px-6 py-16">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/10 via-[#030712] to-blue-500/10 z-10" />
+          <Canvas camera={{ position: [0, 0, 5] }}>
+            <Stars radius={100} depth={50} count={4000} factor={4} fade speed={0.5} />
+          </Canvas>
+        </div>
+
+        <div className="relative z-20 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-2xl w-full max-w-lg p-8">
+          <h2 className="text-3xl font-bold mb-6 text-center text-white">Reset Link Ready</h2>
           
           {resetLink ? (
             <>
-              <p className="text-gray-600 text-center mb-6">Here's your password reset link:</p>
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4">
-                <p className="text-xs text-gray-500 mb-2">Reset Link:</p>
+              <p className="text-gray-300 text-center mb-6">Here's your password reset link:</p>
+              <div className="bg-white/5 p-4 rounded-2xl border border-white/10 mb-4">
+                <p className="text-xs text-gray-400 mb-2">Reset Link:</p>
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
                     value={resetLink}
                     readOnly
-                    className="flex-1 bg-white border border-blue-300 rounded px-2 py-2 text-xs font-mono overflow-auto"
+                    className="flex-1 bg-black/30 border border-white/20 rounded-lg px-2 py-2 text-xs font-mono text-white overflow-auto"
                   />
                   <button
                     onClick={copyToClipboard}
-                    className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded transition"
+                    className="bg-amber-500 hover:bg-amber-600 text-black p-2 rounded-lg transition"
                     title="Copy to clipboard"
                   >
                     {copied ? <Check size={18} /> : <Copy size={18} />}
@@ -64,15 +73,15 @@ const ForgotPassword = () => {
               </div>
               <Link
                 to={resetLink}
-                className="block w-full text-center bg-green-600 hover:bg-green-700 text-white py-2 rounded-md font-bold transition mb-4"
+                className="block w-full text-center bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-3 rounded-xl font-bold transition mb-4"
               >
                 Open Reset Link
               </Link>
-              <p className="text-gray-600 text-center text-sm">Or check your email for the reset link.</p>
+              <p className="text-gray-400 text-center text-sm">Or check your email for the reset link.</p>
             </>
           ) : (
             <>
-              <p className="text-gray-600 text-center">Check your email for the password reset link.</p>
+              <p className="text-gray-300 text-center">Check your email for the password reset link.</p>
               <p className="text-gray-500 text-center text-sm mt-4">Redirecting to login in 3 seconds...</p>
             </>
           )}
@@ -82,27 +91,34 @@ const ForgotPassword = () => {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh]">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-96 border border-gray-100">
-        <h2 className="text-3xl font-bold mb-6 text-center text-blue-800">Forgot Password</h2>
-        {error && <p className="text-red-500 text-sm mb-4 text-center bg-red-50 p-2 rounded">{error}</p>}
+    <div className="dark-page relative min-h-screen bg-[#030712] flex items-center justify-center overflow-hidden px-6 py-16">
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-tr from-amber-500/10 via-[#030712] to-blue-500/10 z-10" />
+        <Canvas camera={{ position: [0, 0, 5] }}>
+          <Stars radius={100} depth={50} count={4000} factor={4} fade speed={0.5} />
+        </Canvas>
+      </div>
+
+      <div className="relative z-20 bg-white/5 p-8 rounded-3xl shadow-2xl w-full max-w-md border border-white/10 backdrop-blur-3xl">
+        <h2 className="text-3xl font-bold mb-6 text-center text-white">Forgot Password</h2>
+        {error && <p className="text-red-300 text-sm mb-4 text-center bg-red-500/10 border border-red-500/30 p-2 rounded-xl">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email Address</label>
+            <label className="block text-sm font-medium text-gray-300">Email Address</label>
             <input
               type="email"
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+              className="mt-1 block w-full border border-white/20 bg-black/30 text-white rounded-xl p-3"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
-          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-md font-bold hover:bg-blue-700 transition">
+          <button type="submit" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 rounded-xl font-bold transition">
             Send Reset Link
           </button>
         </form>
-        <p className="mt-4 text-center text-sm text-gray-600">
-          Remember your password? <Link to="/#/login" className="text-blue-600 hover:underline">Login</Link>
+        <p className="mt-4 text-center text-sm text-gray-400">
+          Remember your password? <Link to="/login" className="text-amber-400 hover:underline">Login</Link>
         </p>
       </div>
     </div>
