@@ -3,6 +3,7 @@ import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
+import { getMyBookings, cancelBooking } from "../api";
 import {
   ArrowRight,
   Award,
@@ -37,6 +38,7 @@ const PassengerProfile = () => {
   const [editing, setEditing] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [toast, setToast] = useState(null);
+  const [bookingsLoading, setBookingsLoading] = useState(true);
 
   const [profileForm, setProfileForm] = useState({
     full_name: user?.full_name || user?.name || "",
@@ -45,50 +47,7 @@ const PassengerProfile = () => {
     nationality: user?.nationality || "Bangladeshi",
   });
 
-  const [bookings, setBookings] = useState([
-    {
-      id: 1,
-      flightNumber: "SK-101",
-      from: "Dhaka (DAC)",
-      to: "Dubai (DXB)",
-      date: "2026-04-15",
-      time: "09:30",
-      status: "Confirmed",
-      seat: "12A",
-      cabinClass: "Business",
-      gate: "A12",
-      terminal: "T1",
-      price: "৳48,900",
-    },
-    {
-      id: 2,
-      flightNumber: "SK-205",
-      from: "Dubai (DXB)",
-      to: "London (LHR)",
-      date: "2026-04-20",
-      time: "14:45",
-      status: "Pending",
-      seat: "8C",
-      cabinClass: "Economy",
-      gate: "B07",
-      terminal: "T2",
-      price: "৳86,500",
-    },
-    {
-      id: 3,
-      flightNumber: "SK-090",
-      from: "Dhaka (DAC)",
-      to: "Cox's Bazar (CXB)",
-      date: "2026-05-03",
-      time: "08:10",
-      status: "Confirmed",
-      seat: "4F",
-      cabinClass: "Premium Economy",
-      gate: "C03",
-      terminal: "Domestic",
-      price: "৳6,500",
-    },
-  ]);
+  const [bookings, setBookings] = useState([]);
 
   const tabs = [
     { id: "overview", label: "Overview", icon: BadgeCheck },
@@ -107,16 +66,77 @@ const PassengerProfile = () => {
     });
   }, [user]);
 
+  useEffect(() => {
+    const loadBookings = async () => {
+      if (!user) {
+        setBookings([]);
+        setBookingsLoading(false);
+        return;
+      }
+
+      try {
+        setBookingsLoading(true);
+        const { data } = await getMyBookings();
+
+        const mappedBookings = Array.isArray(data)
+          ? data.map((booking) => {
+              const flight = booking.flight || {};
+              const departure = flight.departure_time
+                ? new Date(flight.departure_time)
+                : null;
+
+              return {
+                id: booking.id,
+                flightNumber: flight.flight_number || `Flight-${booking.flight_id}`,
+                from: flight.origin || "Unknown Origin",
+                to: flight.destination || "Unknown Destination",
+                date: departure ? departure.toISOString().slice(0, 10) : "",
+                time: departure
+                  ? departure.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  : "--:--",
+                status: booking.status || "Confirmed",
+                seat: booking.seat_number || "Auto Assigned",
+                cabinClass: "Flexible",
+                gate: "TBD",
+                terminal: "TBD",
+                price:
+                  typeof flight.price === "number"
+                    ? `৳${flight.price.toLocaleString()}`
+                    : "Fare Pending",
+                raw: booking,
+              };
+            })
+          : [];
+
+        setBookings(mappedBookings);
+      } catch (err) {
+        setBookings([]);
+        showToast(
+          err.response?.data?.detail || "Could not load your bookings.",
+          "warning"
+        );
+      } finally {
+        setBookingsLoading(false);
+      }
+    };
+
+    loadBookings();
+  }, [user]);
+
   const activeBookings = bookings.filter((b) => b.status !== "Cancelled");
   const confirmedBookings = bookings.filter((b) => b.status === "Confirmed");
 
   const nextBooking = useMemo(() => {
     const now = new Date();
     return [...activeBookings]
-      .filter((b) => new Date(`${b.date}T${b.time}`) >= now)
+      .filter((b) => b.date && new Date(`${b.date}T${normalizeTime(b.time)}`) >= now)
       .sort(
         (a, b) =>
-          new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`)
+          new Date(`${a.date}T${normalizeTime(a.time)}`) -
+          new Date(`${b.date}T${normalizeTime(b.time)}`)
       )[0];
   }, [activeBookings]);
 
@@ -160,18 +180,27 @@ const PassengerProfile = () => {
     setEditing(false);
   };
 
-  const handleCancelBooking = (id) => {
-    setBookings((prev) =>
-      prev.map((booking) =>
-        booking.id === id ? { ...booking, status: "Cancelled" } : booking
-      )
-    );
+  const handleCancelBooking = async (id) => {
+    try {
+      await cancelBooking(id);
 
-    if (selectedBooking?.id === id) {
-      setSelectedBooking((prev) => ({ ...prev, status: "Cancelled" }));
+      setBookings((prev) =>
+        prev.map((booking) =>
+          booking.id === id ? { ...booking, status: "Cancelled" } : booking
+        )
+      );
+
+      if (selectedBooking?.id === id) {
+        setSelectedBooking((prev) => ({ ...prev, status: "Cancelled" }));
+      }
+
+      showToast("Booking cancelled successfully.", "warning");
+    } catch (err) {
+      showToast(
+        err.response?.data?.detail || "Could not cancel booking.",
+        "warning"
+      );
     }
-
-    showToast("Booking cancelled successfully.", "warning");
   };
 
   const handleCheckIn = (booking) => {
@@ -424,23 +453,33 @@ const PassengerProfile = () => {
                 title="Latest flight activity"
                 description="Your most recent reservations with professional status indicators and quick access."
               >
-                <div className="mt-6 space-y-4">
-                  {bookings.slice(0, 3).map((booking) => (
-                    <BookingRow
-                      key={booking.id}
-                      booking={booking}
-                      onView={() => setSelectedBooking(booking)}
-                      onCancel={() => handleCancelBooking(booking.id)}
-                    />
-                  ))}
-                </div>
+                {bookingsLoading ? (
+                  <div className="mt-6 text-sm text-gray-400">Loading bookings...</div>
+                ) : (
+                  <div className="mt-6 space-y-4">
+                    {bookings.slice(0, 3).map((booking) => (
+                      <BookingRow
+                        key={booking.id}
+                        booking={booking}
+                        onView={() => setSelectedBooking(booking)}
+                        onCancel={() => handleCancelBooking(booking.id)}
+                      />
+                    ))}
+                  </div>
+                )}
               </GlassCard>
             </div>
           )}
 
           {activeTab === "bookings" && (
             <div className="space-y-5">
-              {bookings.length === 0 ? (
+              {bookingsLoading ? (
+                <GlassCard
+                  eyebrow="Loading"
+                  title="Fetching your bookings"
+                  description="Please wait while we load your latest reservations."
+                />
+              ) : bookings.length === 0 ? (
                 <GlassCard
                   eyebrow="No Reservations"
                   title="You do not have any bookings yet"
@@ -902,5 +941,12 @@ const formatDate = (dateString) =>
     month: "short",
     year: "numeric",
   });
+
+const normalizeTime = (timeString) => {
+  if (!timeString || timeString === "--:--") return "00:00";
+  const date = new Date(`1970-01-01 ${timeString}`);
+  if (Number.isNaN(date.getTime())) return "00:00";
+  return date.toTimeString().slice(0, 5);
+};
 
 export default PassengerProfile;
