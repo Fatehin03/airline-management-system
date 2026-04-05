@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo, useContext } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { fetchFlights, bookFlight } from "../api";
 import { AuthContext } from "../context/AuthContext";
 import {
@@ -15,16 +15,20 @@ import {
   ShieldCheck,
   Clock3,
   Sparkles,
+  AlertCircle,
 } from "lucide-react";
 
 const Flights = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
   const [flights, setFlights] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bookingSuccess, setBookingSuccess] = useState("");
   const [error, setError] = useState("");
+  const [bookingError, setBookingError] = useState("");
+  const [bookingFlightId, setBookingFlightId] = useState(null);
 
   const [filters, setFilters] = useState({
     from: "",
@@ -34,72 +38,17 @@ const Flights = () => {
     sortBy: "departureSoonest",
   });
 
-  const mockFlights = [
-    {
-      id: "demo-1",
-      flight_number: "SK-201",
-      origin: "Dhaka (DAC)",
-      destination: "Dubai (DXB)",
-      departure_time: new Date(Date.now() + 86400000).toISOString(),
-      price: 48900,
-      available_seats: 12,
-    },
-    {
-      id: "demo-2",
-      flight_number: "SK-305",
-      origin: "Dhaka (DAC)",
-      destination: "London (LHR)",
-      departure_time: new Date(Date.now() + 2 * 86400000).toISOString(),
-      price: 86500,
-      available_seats: 8,
-    },
-    {
-      id: "demo-3",
-      flight_number: "SK-440",
-      origin: "Dhaka (DAC)",
-      destination: "Zurich (ZRH)",
-      departure_time: new Date(Date.now() + 3 * 86400000).toISOString(),
-      price: 91300,
-      available_seats: 5,
-    },
-    {
-      id: "demo-4",
-      flight_number: "SK-511",
-      origin: "Dhaka (DAC)",
-      destination: "New York (JFK)",
-      departure_time: new Date(Date.now() + 4 * 86400000).toISOString(),
-      price: 118000,
-      available_seats: 4,
-    },
-    {
-      id: "demo-5",
-      flight_number: "SK-118",
-      origin: "Chittagong (CGP)",
-      destination: "Dubai (DXB)",
-      departure_time: new Date(Date.now() + 5 * 86400000).toISOString(),
-      price: 50600,
-      available_seats: 7,
-    },
-    {
-      id: "demo-6",
-      flight_number: "SK-090",
-      origin: "Dhaka (DAC)",
-      destination: "Cox's Bazar (CXB)",
-      departure_time: new Date(Date.now() + 10 * 3600000).toISOString(),
-      price: 6500,
-      available_seats: 16,
-    },
-  ];
-
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    setFilters((prev) => ({
-      ...prev,
+    const nextFilters = {
       from: params.get("from") || "",
       destination: params.get("destination") || "",
       departDate: params.get("date") || "",
       passengers: params.get("passengers") || "1",
-    }));
+      sortBy: params.get("sortBy") || "departureSoonest",
+    };
+
+    setFilters(nextFilters);
   }, [location.search]);
 
   useEffect(() => {
@@ -108,29 +57,49 @@ const Flights = () => {
         setLoading(true);
         setError("");
 
-        const { data } = await fetchFlights();
+        const params = new URLSearchParams(location.search);
 
-        if (Array.isArray(data) && data.length > 0) {
-          setFlights(data);
-        } else {
-          setFlights(mockFlights);
-        }
+        const origin = params.get("from") || "";
+        const destination = params.get("destination") || "";
+        const date = params.get("date") || "";
+        const sortBy = params.get("sortBy") || "departureSoonest";
+
+        const { data } = await fetchFlights({
+          origin: origin || undefined,
+          destination: destination || undefined,
+          date: date || undefined,
+          sort_by: sortBy || undefined,
+        });
+
+        setFlights(Array.isArray(data) ? data : []);
       } catch (err) {
-        setFlights(mockFlights);
-        setError("Live flight feed unavailable. Showing curated demo inventory.");
+        setFlights([]);
+        setError(err.response?.data?.detail || "Unable to load flights right now.");
       } finally {
-        setTimeout(() => setLoading(false), 1200);
+        setLoading(false);
       }
     };
 
     getFlights();
-  }, []);
+  }, [location.search]);
 
   const handleFilterChange = (field, value) => {
     setFilters((prev) => ({
       ...prev,
       [field]: value,
     }));
+  };
+
+  const applySearch = () => {
+    const params = new URLSearchParams();
+
+    if (filters.from.trim()) params.set("from", filters.from.trim());
+    if (filters.destination.trim()) params.set("destination", filters.destination.trim());
+    if (filters.departDate) params.set("date", filters.departDate);
+    if (filters.passengers) params.set("passengers", filters.passengers);
+    if (filters.sortBy) params.set("sortBy", filters.sortBy);
+
+    navigate(`/flights${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
   const clearFilters = () => {
@@ -141,91 +110,62 @@ const Flights = () => {
       passengers: "1",
       sortBy: "departureSoonest",
     });
+    navigate("/flights");
   };
 
   const handleBooking = async (flight) => {
+    setBookingError("");
+    setBookingSuccess("");
+
+    if (!user) {
+      navigate("/login", {
+        state: { from: location },
+        replace: true,
+      });
+      return;
+    }
+
     try {
-      if ((flight.available_seats ?? 0) < Number(filters.passengers || 1)) {
-        alert("Not enough seats available for this booking.");
+      const passengerCount = Number(filters.passengers || 1);
+
+      if ((flight.available_seats ?? 0) < passengerCount) {
+        setBookingError("Not enough seats available for this booking.");
         return;
       }
 
-      if (!String(flight.id).includes("demo")) {
-        await bookFlight({ flight_id: flight.id });
-      }
+      setBookingFlightId(flight.id);
+
+      await bookFlight({ flight_id: flight.id });
 
       setFlights((prev) =>
         prev.map((f) =>
           f.id === flight.id
             ? {
                 ...f,
-                available_seats:
-                  Number(f.available_seats || 0) - Number(filters.passengers || 1),
+                available_seats: Number(f.available_seats || 0) - passengerCount,
               }
             : f
         )
       );
 
       setBookingSuccess(
-        `${flight.flight_number} reserved successfully for ${filters.passengers} passenger${
-          Number(filters.passengers) > 1 ? "s" : ""
+        `${flight.flight_number} reserved successfully for ${passengerCount} passenger${
+          passengerCount > 1 ? "s" : ""
         }.`
       );
 
       setTimeout(() => setBookingSuccess(""), 3000);
     } catch (err) {
-      alert("Booking failed. Please try again.");
+      setBookingError(err.response?.data?.detail || "Booking failed. Please try again.");
+    } finally {
+      setBookingFlightId(null);
     }
   };
 
-  const filteredFlights = useMemo(() => {
-    const normalized = (value) => String(value || "").toLowerCase().trim();
+  const filteredFlights = flights.filter(
+    (flight) => Number(flight.available_seats || 0) >= Number(filters.passengers || 1)
+  );
 
-    let result = flights.filter((flight) => {
-      const origin = normalized(flight.origin);
-      const destination = normalized(flight.destination);
-      const fromFilter = normalized(filters.from);
-      const destinationFilter = normalized(filters.destination);
-      const passengerCount = Number(filters.passengers || 1);
-
-      if (fromFilter && !origin.includes(fromFilter)) return false;
-      if (destinationFilter && !destination.includes(destinationFilter)) return false;
-
-      if (filters.departDate) {
-        const flightDate = new Date(flight.departure_time).toISOString().slice(0, 10);
-        if (flightDate !== filters.departDate) return false;
-      }
-
-      if (Number(flight.available_seats || 0) < passengerCount) return false;
-
-      return true;
-    });
-
-    switch (filters.sortBy) {
-      case "priceLowHigh":
-        result.sort((a, b) => Number(a.price) - Number(b.price));
-        break;
-      case "priceHighLow":
-        result.sort((a, b) => Number(b.price) - Number(a.price));
-        break;
-      case "seatsHighLow":
-        result.sort(
-          (a, b) => Number(b.available_seats || 0) - Number(a.available_seats || 0)
-        );
-        break;
-      case "departureSoonest":
-      default:
-        result.sort(
-          (a, b) => new Date(a.departure_time).getTime() - new Date(b.departure_time).getTime()
-        );
-        break;
-    }
-
-    return result;
-  }, [flights, filters]);
-
-  const isDemoMode = flights.some((f) => String(f.id).includes("demo"));
-  const featuredDestination = filters.destination || "Luxury Routes";
   const totalAvailableSeats = filteredFlights.reduce(
     (sum, f) => sum + Number(f.available_seats || 0),
     0
@@ -264,64 +204,22 @@ const Flights = () => {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-[#030712] text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.14),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.12),transparent_30%)]" />
-        <div className="relative z-10 flex items-center justify-center min-h-screen px-6 py-16">
-          <div className="max-w-lg w-full bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[28px] p-10 shadow-2xl text-center">
-            <div className="mx-auto mb-6 w-20 h-20 rounded-3xl bg-amber-500/10 border border-amber-400/20 flex items-center justify-center">
-              <Plane className="text-amber-400 rotate-45" size={34} />
-            </div>
-
-            <p className="text-amber-400 text-xs font-bold tracking-[0.35em] uppercase mb-3">
-              Secure Access
-            </p>
-
-            <h2 className="text-3xl font-bold mb-3">Sign in to view available flights</h2>
-
-            <p className="text-gray-400 mb-8 leading-relaxed">
-              Access live schedules, compare premium routes, and reserve your seat
-              from a curated luxury travel dashboard.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link
-                to="/login"
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold px-6 py-3.5 hover:scale-[1.02] transition-all"
-              >
-                Continue to Login <ArrowRight size={18} />
-              </Link>
-
-              <Link
-                to="/"
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3.5 hover:bg-white/10 transition-all"
-              >
-                Back to Home
-              </Link>
-            </div>
-
-            <p className="mt-5 text-sm text-gray-500">
-              Need help?{" "}
-              <Link to="/forgot-password" className="text-amber-400 hover:underline">
-                Recover your account
-              </Link>
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[#030712] text-white relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.12),transparent_26%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.12),transparent_28%)]" />
       <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] bg-[size:80px_80px]" />
 
       {bookingSuccess && (
-        <div className="fixed top-24 right-5 z-50 bg-emerald-500/95 text-white border border-emerald-300/20 px-5 py-3 rounded-2xl shadow-2xl backdrop-blur-xl flex items-center gap-3 animate-bounce">
+        <div className="fixed top-24 right-5 z-50 bg-emerald-500/95 text-white border border-emerald-300/20 px-5 py-3 rounded-2xl shadow-2xl backdrop-blur-xl flex items-center gap-3">
           <CheckCircle size={20} />
           <span className="font-semibold">{bookingSuccess}</span>
+        </div>
+      )}
+
+      {bookingError && (
+        <div className="fixed top-24 right-5 z-50 bg-red-500/95 text-white border border-red-300/20 px-5 py-3 rounded-2xl shadow-2xl backdrop-blur-xl flex items-center gap-3">
+          <AlertCircle size={20} />
+          <span className="font-semibold">{bookingError}</span>
         </div>
       )}
 
@@ -336,7 +234,7 @@ const Flights = () => {
               <h1 className="text-4xl md:text-5xl font-serif italic leading-tight mb-4">
                 Discover Flights to{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-white to-amber-200 font-bold not-italic">
-                  {featuredDestination}
+                  {filters.destination || "Luxury Routes"}
                 </span>
               </h1>
 
@@ -360,11 +258,34 @@ const Flights = () => {
               <MiniStat
                 icon={<ShieldCheck size={18} />}
                 label="Booking Status"
-                value={isDemoMode ? "Demo" : "Live"}
+                value="Live"
               />
             </div>
           </div>
         </section>
+
+        {!user && (
+          <section className="mb-8">
+            <div className="rounded-[24px] border border-amber-400/20 bg-amber-500/10 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <Info className="text-amber-300 mt-0.5" size={18} />
+                <div>
+                  <h3 className="font-semibold text-amber-100">Guest browsing mode</h3>
+                  <p className="text-sm text-amber-200/80">
+                    You can search and compare flights now. Sign in when you are ready to book.
+                  </p>
+                </div>
+              </div>
+              <Link
+                to="/login"
+                state={{ from: location }}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold px-5 py-3 hover:scale-[1.02] transition-all"
+              >
+                Login to Book <ArrowRight size={16} />
+              </Link>
+            </div>
+          </section>
+        )}
 
         <section className="mb-10">
           <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[28px] p-6 md:p-8 shadow-2xl">
@@ -390,7 +311,7 @@ const Flights = () => {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-5">
               <SearchField
                 label="From"
                 value={filters.from}
@@ -439,11 +360,13 @@ const Flights = () => {
                   { value: "seatsHighLow", label: "Most Seats Available" },
                 ]}
               />
+
+              <ActionField onSearch={applySearch} />
             </div>
 
             {error && (
-              <div className="mt-5 rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200 flex items-center gap-2">
-                <Info size={16} />
+              <div className="mt-5 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200 flex items-center gap-2">
+                <AlertCircle size={16} />
                 {error}
               </div>
             )}
@@ -458,13 +381,6 @@ const Flights = () => {
               your current search.
             </p>
           </div>
-
-          {isDemoMode && (
-            <span className="inline-flex items-center gap-2 text-xs text-amber-300 bg-amber-500/10 px-3 py-2 rounded-full border border-amber-400/20">
-              <Info size={14} />
-              Demo inventory visible
-            </span>
-          )}
         </section>
 
         <section className="space-y-5">
@@ -475,6 +391,8 @@ const Flights = () => {
                 flight={flight}
                 passengers={Number(filters.passengers || 1)}
                 onBook={handleBooking}
+                bookingBusy={bookingFlightId === flight.id}
+                user={user}
               />
             ))
           ) : (
@@ -590,6 +508,21 @@ const SelectField = ({ label, value, onChange, icon, options }) => (
   </div>
 );
 
+const ActionField = ({ onSearch }) => (
+  <div className="flex flex-col gap-2">
+    <label className="text-xs font-bold text-gray-400 uppercase tracking-[0.25em]">
+      Action
+    </label>
+    <button
+      type="button"
+      onClick={onSearch}
+      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold py-3.5 hover:scale-[1.02] transition-all"
+    >
+      Search <ArrowRight size={16} />
+    </button>
+  </div>
+);
+
 const MiniStat = ({ icon, label, value }) => (
   <div className="bg-white/5 border border-white/10 rounded-2xl px-4 py-4 backdrop-blur-xl">
     <div className="flex items-center gap-2 text-amber-400 mb-2">
@@ -610,7 +543,7 @@ const BottomFeature = ({ icon, title, desc }) => (
   </div>
 );
 
-const FlightResultCard = ({ flight, passengers, onBook }) => {
+const FlightResultCard = ({ flight, passengers, onBook, bookingBusy, user }) => {
   const seats = Number(flight.available_seats || 0);
   const soldOut = seats < passengers;
   const price = Number(flight.price || 0);
@@ -627,7 +560,7 @@ const FlightResultCard = ({ flight, passengers, onBook }) => {
             </span>
 
             <span className="inline-flex items-center rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs text-gray-300">
-              Premium Economy / Business Ready
+              {flight.status || "Scheduled"}
             </span>
           </div>
 
@@ -680,14 +613,20 @@ const FlightResultCard = ({ flight, passengers, onBook }) => {
 
           <button
             onClick={() => onBook(flight)}
-            disabled={soldOut}
+            disabled={soldOut || bookingBusy}
             className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold transition-all ${
-              soldOut
+              soldOut || bookingBusy
                 ? "bg-white/10 text-gray-500 cursor-not-allowed"
                 : "bg-gradient-to-r from-amber-500 to-amber-600 text-black hover:scale-[1.02]"
             }`}
           >
-            {soldOut ? "Not Enough Seats" : "Book Now"}
+            {bookingBusy
+              ? "Booking..."
+              : soldOut
+              ? "Not Enough Seats"
+              : user
+              ? "Book Now"
+              : "Login to Book"}
           </button>
         </div>
       </div>
