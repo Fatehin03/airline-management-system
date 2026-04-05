@@ -11,12 +11,20 @@ router = APIRouter()
 @router.post("/")
 def create_booking(booking_data: dict, db: Session = Depends(get_db)):
     flight_id = booking_data.get("flight_id")
+    user_id = booking_data.get("user_id")
+    seat_number = booking_data.get("seat_number")
 
     if not flight_id:
-      raise HTTPException(
-          status_code=status.HTTP_400_BAD_REQUEST,
-          detail="flight_id is required",
-      )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="flight_id is required",
+        )
+
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="user_id is required",
+        )
 
     flight = db.query(Flight).filter(Flight.id == flight_id).first()
 
@@ -33,8 +41,10 @@ def create_booking(booking_data: dict, db: Session = Depends(get_db)):
         )
 
     booking = Booking(
+        user_id=user_id,
         flight_id=flight.id,
         status="Confirmed",
+        seat_number=seat_number,
     )
 
     flight.available_seats -= 1
@@ -48,8 +58,11 @@ def create_booking(booking_data: dict, db: Session = Depends(get_db)):
         "message": "Booking successful",
         "booking": {
             "id": booking.id,
+            "user_id": booking.user_id,
             "flight_id": booking.flight_id,
             "status": booking.status,
+            "seat_number": booking.seat_number,
+            "booking_date": booking.booking_date,
         },
         "flight": {
             "id": flight.id,
@@ -60,14 +73,17 @@ def create_booking(booking_data: dict, db: Session = Depends(get_db)):
 
 
 @router.get("/my-bookings")
-def get_user_bookings(db: Session = Depends(get_db)):
-    bookings = db.query(Booking).all()
+def get_user_bookings(user_id: int, db: Session = Depends(get_db)):
+    bookings = db.query(Booking).filter(Booking.user_id == user_id).all()
 
     return [
         {
             "id": booking.id,
+            "user_id": booking.user_id,
             "flight_id": booking.flight_id,
             "status": booking.status,
+            "seat_number": booking.seat_number,
+            "booking_date": booking.booking_date,
         }
         for booking in bookings
     ]
