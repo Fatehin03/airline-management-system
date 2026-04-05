@@ -40,15 +40,13 @@ const Flights = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const nextFilters = {
+    setFilters({
       from: params.get("from") || "",
       destination: params.get("destination") || "",
       departDate: params.get("date") || "",
       passengers: params.get("passengers") || "1",
       sortBy: params.get("sortBy") || "departureSoonest",
-    };
-
-    setFilters(nextFilters);
+    });
   }, [location.search]);
 
   useEffect(() => {
@@ -96,10 +94,10 @@ const Flights = () => {
     if (filters.from.trim()) params.set("from", filters.from.trim());
     if (filters.destination.trim()) params.set("destination", filters.destination.trim());
     if (filters.departDate) params.set("date", filters.departDate);
-    if (filters.passengers) params.set("passengers", filters.passengers);
-    if (filters.sortBy) params.set("sortBy", filters.sortBy);
+    params.set("passengers", filters.passengers || "1");
+    params.set("sortBy", filters.sortBy || "departureSoonest");
 
-    navigate(`/flights${params.toString() ? `?${params.toString()}` : ""}`);
+    navigate(`/flights?${params.toString()}`);
   };
 
   const clearFilters = () => {
@@ -128,6 +126,13 @@ const Flights = () => {
     try {
       const passengerCount = Number(filters.passengers || 1);
 
+      if (passengerCount > 1) {
+        setBookingError(
+          "Multi-passenger booking is not connected in backend yet. Please book 1 passenger at a time for now."
+        );
+        return;
+      }
+
       if ((flight.available_seats ?? 0) < passengerCount) {
         setBookingError("Not enough seats available for this booking.");
         return;
@@ -135,24 +140,26 @@ const Flights = () => {
 
       setBookingFlightId(flight.id);
 
-      await bookFlight({ flight_id: flight.id });
+      const { data } = await bookFlight({
+        flight_id: flight.id,
+      });
+
+      const updatedSeats =
+        data?.flight?.available_seats ??
+        Number(flight.available_seats || 0) - 1;
 
       setFlights((prev) =>
         prev.map((f) =>
           f.id === flight.id
             ? {
                 ...f,
-                available_seats: Number(f.available_seats || 0) - passengerCount,
+                available_seats: updatedSeats,
               }
             : f
         )
       );
 
-      setBookingSuccess(
-        `${flight.flight_number} reserved successfully for ${passengerCount} passenger${
-          passengerCount > 1 ? "s" : ""
-        }.`
-      );
+      setBookingSuccess(`${flight.flight_number} reserved successfully.`);
 
       setTimeout(() => setBookingSuccess(""), 3000);
     } catch (err) {
@@ -245,21 +252,9 @@ const Flights = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full lg:w-auto">
-              <MiniStat
-                icon={<Plane size={18} />}
-                label="Routes Found"
-                value={String(filteredFlights.length)}
-              />
-              <MiniStat
-                icon={<Users size={18} />}
-                label="Seats Available"
-                value={String(totalAvailableSeats)}
-              />
-              <MiniStat
-                icon={<ShieldCheck size={18} />}
-                label="Booking Status"
-                value="Live"
-              />
+              <MiniStat icon={<Plane size={18} />} label="Routes Found" value={String(filteredFlights.length)} />
+              <MiniStat icon={<Users size={18} />} label="Seats Available" value={String(totalAvailableSeats)} />
+              <MiniStat icon={<ShieldCheck size={18} />} label="Booking Status" value="Live" />
             </div>
           </div>
         </section>
