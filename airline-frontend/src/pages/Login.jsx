@@ -81,6 +81,7 @@ const Login = () => {
       const decoded = jwtDecode(data.access_token);
       const apiRole = (
         data?.role ||
+        data?.user?.role ||
         decoded?.role ||
         selectedRole
       )?.toLowerCase();
@@ -88,7 +89,10 @@ const Login = () => {
       const chosenRole = selectedRole.toLowerCase();
 
       if (chosenRole === "staff") {
-        const userEmployeeId = String(decoded?.employee_id || "").toUpperCase();
+        const userEmployeeId = String(
+          data?.user?.employee_id || decoded?.employee_id || ""
+        ).toUpperCase();
+
         const inputStaffId = String(formData.staff_id || "").toUpperCase();
 
         if (!inputStaffId || userEmployeeId !== inputStaffId) {
@@ -103,11 +107,12 @@ const Login = () => {
       }
 
       const mergedUser = {
+        ...(data?.user || {}),
         ...decoded,
-        role: data?.role || decoded?.role || chosenRole,
-        email: decoded?.email || decoded?.sub || formData.email,
-        full_name: data?.full_name || decoded?.full_name || "",
-        employee_id: decoded?.employee_id || "",
+        role: chosenRole,
+        email: data?.user?.email || decoded?.email || decoded?.sub || formData.email,
+        full_name: data?.user?.full_name || decoded?.full_name || "",
+        employee_id: data?.user?.employee_id || decoded?.employee_id || "",
       };
 
       loginUser(data.access_token, mergedUser);
