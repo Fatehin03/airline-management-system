@@ -111,7 +111,7 @@ const Flights = () => {
     navigate("/flights");
   };
 
-  const handleBooking = async (flight) => {
+  const handleBooking = async (flight, seatNumber = null) => {
     setBookingError("");
     setBookingSuccess("");
 
@@ -142,6 +142,7 @@ const Flights = () => {
 
       const { data } = await bookFlight({
         flight_id: flight.id,
+        seat_number: seatNumber || null,
       });
 
       const updatedSeats =
@@ -538,11 +539,27 @@ const BottomFeature = ({ icon, title, desc }) => (
   </div>
 );
 
+const buildSeatChoices = (availableSeats) => {
+  const seats = Number(availableSeats || 0);
+  const letters = ["A", "B", "C", "D", "E", "F"];
+  const choices = [];
+
+  for (let i = 0; i < seats; i += 1) {
+    const row = Math.floor(i / letters.length) + 1;
+    const letter = letters[i % letters.length];
+    choices.push(`${row}${letter}`);
+  }
+
+  return choices;
+};
+
 const FlightResultCard = ({ flight, passengers, onBook, bookingBusy, user }) => {
+  const [seatPreference, setSeatPreference] = useState("");
   const seats = Number(flight.available_seats || 0);
   const soldOut = seats < passengers;
   const price = Number(flight.price || 0);
   const departure = new Date(flight.departure_time);
+  const seatChoices = buildSeatChoices(seats);
 
   return (
     <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[28px] p-6 md:p-7 shadow-2xl hover:bg-white/[0.07] transition-all">
@@ -606,8 +623,29 @@ const FlightResultCard = ({ flight, passengers, onBook, bookingBusy, user }) => 
           <div className="text-3xl font-bold mb-1">৳{price.toLocaleString()}</div>
           <p className="text-xs text-gray-500 mb-5">Taxes and fees may apply</p>
 
+          <div className="mb-4">
+            <label className="block text-xs uppercase tracking-[0.2em] text-gray-500 font-bold mb-2">
+              Seat Selection
+            </label>
+            <select
+              value={seatPreference}
+              onChange={(e) => setSeatPreference(e.target.value)}
+              disabled={soldOut || bookingBusy}
+              className="w-full appearance-none bg-white/5 border border-white/10 rounded-xl py-2.5 px-3 text-sm text-white outline-none focus:border-amber-500/50 transition-all disabled:text-gray-500"
+            >
+              <option value="" className="bg-[#0b1220]">
+                Auto-assign seat
+              </option>
+              {seatChoices.map((seat) => (
+                <option key={seat} value={seat} className="bg-[#0b1220]">
+                  {seat}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <button
-            onClick={() => onBook(flight)}
+            onClick={() => onBook(flight, seatPreference)}
             disabled={soldOut || bookingBusy}
             className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3.5 font-bold transition-all ${
               soldOut || bookingBusy
