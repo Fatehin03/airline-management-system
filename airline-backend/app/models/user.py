@@ -7,6 +7,8 @@ class User(Base):
     email           = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     full_name       = Column(String)
+    phone           = Column(String, nullable=True)  # ✅ NEW
+    nationality     = Column(String, nullable=True)  # ✅ NEW
     is_active       = Column(Boolean, default=True)
     role            = Column(String, default="passenger")  # passenger | staff
     employee_id     = Column(String, unique=True, nullable=True, index=True)
