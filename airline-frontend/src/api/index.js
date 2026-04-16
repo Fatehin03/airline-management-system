@@ -39,6 +39,18 @@ export const register = (formData) =>
     employee_id: formData.employee_id || null,
   });
 
+// UPDATE USER PROFILE ✅ NEW
+export const updateUserProfile = (profileData) => {
+  const storedUser = getStoredUser();
+  const userId = storedUser?.user_id || storedUser?.id;
+
+  return API.put(`/auth/users/${userId}`, {
+    full_name: profileData.full_name,
+    phone: profileData.phone,
+    nationality: profileData.nationality,
+  });
+};
+
 // FLIGHTS
 export const fetchFlights = (params) => API.get("/flights", { params });
 
