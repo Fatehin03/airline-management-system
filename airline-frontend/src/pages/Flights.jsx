@@ -351,15 +351,21 @@ const Flights = () => {
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">
                   Depart
                 </label>
-                <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400/70 pointer-events-none z-10">
-                    <Calendar size={17} />
+                <div className="relative">
+                  <div className="w-full bg-gradient-to-r from-white/[0.07] to-white/[0.03] border border-white/10 rounded-2xl px-4 py-3.5 flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-gray-300">
+                      <Calendar size={17} className="text-amber-400/70" />
+                      <span className={filters.departDate ? "text-white" : "text-gray-400"}>
+                        {filters.departDate || "mm/dd/yyyy"}
+                      </span>
+                    </div>
+                    <Calendar size={16} className="text-gray-500" />
                   </div>
                   <input
                     type="date"
                     value={filters.departDate}
                     onChange={(e) => handleFilterChange("departDate", e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-sm text-white focus:border-amber-500/50 transition-all outline-none [color-scheme:dark]"
+                    className="absolute inset-0 opacity-0 cursor-pointer [color-scheme:dark]"
                   />
                 </div>
               </div>
