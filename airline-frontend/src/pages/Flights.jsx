@@ -16,6 +16,7 @@ import {
   Clock3,
   Sparkles,
   AlertCircle,
+  ChevronDown,
 } from "lucide-react";
 
 const Flights = () => {
@@ -286,16 +287,17 @@ const Flights = () => {
         <section className="mb-10">
           <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[28px] p-6 md:p-8 shadow-2xl">
             {/* Header - EXACTLY like Home */}
-            <div className="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
-              <Search className="text-amber-400" size={20} />
-              <span className="font-bold tracking-widest text-sm uppercase">
-                Refine your journey
-              </span>
-              
-              {/* Clear button - Right aligned */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6 border-b border-white/10 pb-4">
+              <div className="flex items-center gap-2 min-w-0">
+                <Search className="text-amber-400 shrink-0" size={20} />
+                <span className="font-bold tracking-widest text-sm uppercase leading-tight">
+                  Refine your journey
+                </span>
+              </div>
+
               <button
                 onClick={clearFilters}
-                className="ml-auto inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm hover:bg-white/10 transition-all"
+                className="sm:ml-auto inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm hover:bg-white/10 transition-all"
               >
                 <RefreshCcw size={16} />
                 Clear filters
@@ -309,16 +311,17 @@ const Flights = () => {
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">
                   From
                 </label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400/70">
+                <div className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 px-4 flex items-center gap-3 focus-within:border-amber-500/50 transition-all">
+                  <div className="text-amber-400/70 shrink-0">
                     <MapPin size={17} />
                   </div>
                   <input
                     type="text"
                     value={filters.from}
                     onChange={(e) => handleFilterChange("from", e.target.value)}
+                    autoComplete="off"
                     placeholder="Departure city"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-sm text-white placeholder:text-gray-500 outline-none focus:border-amber-500/50 transition-all"
+                    className="w-full bg-transparent text-sm text-white placeholder:text-gray-500 outline-none"
                   />
                 </div>
               </div>
@@ -328,16 +331,17 @@ const Flights = () => {
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">
                   To
                 </label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400/70">
+                <div className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 px-4 flex items-center gap-3 focus-within:border-amber-500/50 transition-all">
+                  <div className="text-amber-400/70 shrink-0">
                     <MapPin size={17} />
                   </div>
                   <input
                     type="text"
                     value={filters.destination}
                     onChange={(e) => handleFilterChange("destination", e.target.value)}
+                    autoComplete="off"
                     placeholder="Destination city"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-sm text-white placeholder:text-gray-500 outline-none focus:border-amber-500/50 transition-all"
+                    className="w-full bg-transparent text-sm text-white placeholder:text-gray-500 outline-none"
                   />
                 </div>
               </div>
@@ -372,13 +376,16 @@ const Flights = () => {
                   <select
                     value={filters.passengers}
                     onChange={(e) => handleFilterChange("passengers", e.target.value)}
-                    className="w-full appearance-none bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-sm text-white outline-none focus:border-amber-500/50 transition-all"
+                    className="w-full appearance-none bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-11 text-sm text-white outline-none focus:border-amber-500/50 transition-all"
                   >
                     <option value="1" className="bg-[#0b1220]">1 Passenger</option>
                     <option value="2" className="bg-[#0b1220]">2 Passengers</option>
                     <option value="3" className="bg-[#0b1220]">3 Passengers</option>
                     <option value="4" className="bg-[#0b1220]">4 Passengers</option>
                   </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                    <ChevronDown size={16} />
+                  </div>
                 </div>
               </div>
         
@@ -394,13 +401,16 @@ const Flights = () => {
                   <select
                     value={filters.sortBy}
                     onChange={(e) => handleFilterChange("sortBy", e.target.value)}
-                    className="w-full appearance-none bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-sm text-white outline-none focus:border-amber-500/50 transition-all"
+                    className="w-full appearance-none bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-11 text-sm text-white outline-none focus:border-amber-500/50 transition-all"
                   >
                     <option value="departureSoonest" className="bg-[#0b1220]">Departure Soonest</option>
                     <option value="priceLowHigh" className="bg-[#0b1220]">Price: Low to High</option>
                     <option value="priceHighLow" className="bg-[#0b1220]">Price: High to Low</option>
                     <option value="seatsHighLow" className="bg-[#0b1220]">Most Seats Available</option>
                   </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                    <ChevronDown size={16} />
+                  </div>
                 </div>
               </div>
         
