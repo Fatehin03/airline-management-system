@@ -896,15 +896,17 @@ const InputField = ({ label, value, icon }) => (
     <label className="text-xs font-bold text-gray-400 uppercase tracking-[0.22em]">
       {label}
     </label>
-    <div className="relative">
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400/70">
+    <div className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3.5 text-sm text-gray-300 flex items-center gap-3">
+      <div className="text-amber-400/70 shrink-0">
         {icon}
       </div>
       <input
         type="text"
         value={value}
         readOnly
-        className="w-full rounded-xl border border-white/10 bg-white/5 py-3.5 pl-12 pr-4 text-sm text-gray-300 outline-none"
+        autoComplete="off"
+        spellCheck={false}
+        className="w-full bg-transparent text-sm text-gray-300 outline-none"
       />
     </div>
   </div>

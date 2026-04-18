@@ -311,16 +311,17 @@ const Flights = () => {
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">
                   From
                 </label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400/70">
+                <div className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 px-4 flex items-center gap-3 focus-within:border-amber-500/50 transition-all">
+                  <div className="text-amber-400/70 shrink-0">
                     <MapPin size={17} />
                   </div>
                   <input
                     type="text"
                     value={filters.from}
                     onChange={(e) => handleFilterChange("from", e.target.value)}
+                    autoComplete="off"
                     placeholder="Departure city"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-sm text-white placeholder:text-gray-500 outline-none focus:border-amber-500/50 transition-all"
+                    className="w-full bg-transparent text-sm text-white placeholder:text-gray-500 outline-none"
                   />
                 </div>
               </div>
@@ -330,16 +331,17 @@ const Flights = () => {
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">
                   To
                 </label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400/70">
+                <div className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 px-4 flex items-center gap-3 focus-within:border-amber-500/50 transition-all">
+                  <div className="text-amber-400/70 shrink-0">
                     <MapPin size={17} />
                   </div>
                   <input
                     type="text"
                     value={filters.destination}
                     onChange={(e) => handleFilterChange("destination", e.target.value)}
+                    autoComplete="off"
                     placeholder="Destination city"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-sm text-white placeholder:text-gray-500 outline-none focus:border-amber-500/50 transition-all"
+                    className="w-full bg-transparent text-sm text-white placeholder:text-gray-500 outline-none"
                   />
                 </div>
               </div>

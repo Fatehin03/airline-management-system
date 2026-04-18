@@ -912,20 +912,24 @@ const InputField = ({ label, value, onChange, readOnly, icon }) => (
     <label className="text-xs font-bold text-gray-400 uppercase tracking-[0.22em]">
       {label}
     </label>
-    <div className="relative">
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400/70">
+    <div
+      className={`w-full rounded-xl border py-3.5 px-4 text-sm transition-all flex items-center gap-3 ${
+        readOnly
+          ? "bg-white/5 border-white/10 text-gray-300"
+          : "bg-white/10 border-amber-400/30 text-white focus-within:border-amber-500/60"
+      }`}
+    >
+      <div className="text-amber-400/70 shrink-0">
         {icon}
       </div>
       <input
         type="text"
         value={value}
         readOnly={readOnly}
+        autoComplete="off"
+        spellCheck={false}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full rounded-xl border py-3.5 pl-12 pr-4 text-sm outline-none transition-all ${
-          readOnly
-            ? "bg-white/5 border-white/10 text-gray-300"
-            : "bg-white/10 border-amber-400/30 text-white focus:border-amber-500/60"
-        }`}
+        className="w-full bg-transparent outline-none"
       />
     </div>
   </div>
