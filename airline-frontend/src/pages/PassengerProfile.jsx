@@ -22,6 +22,8 @@ import {
   PencilLine,
   Plane,
   Search,
+  Filter,
+  ChevronDown,
   ShieldCheck,
   Ticket,
   User,
@@ -48,6 +50,8 @@ const PassengerProfile = () => {
   });
 
   const [bookings, setBookings] = useState([]);
+  const [bookingQuery, setBookingQuery] = useState("");
+  const [bookingStatusFilter, setBookingStatusFilter] = useState("all");
 
   const tabs = [
     { id: "overview", label: "Overview", icon: BadgeCheck },
@@ -128,6 +132,21 @@ const PassengerProfile = () => {
 
   const activeBookings = bookings.filter((b) => b.status !== "Cancelled");
   const confirmedBookings = bookings.filter((b) => b.status === "Confirmed");
+  const filteredBookings = bookings.filter((booking) => {
+    const query = bookingQuery.trim().toLowerCase();
+    const matchesQuery =
+      !query ||
+      booking.flightNumber.toLowerCase().includes(query) ||
+      booking.from.toLowerCase().includes(query) ||
+      booking.to.toLowerCase().includes(query) ||
+      booking.seat.toLowerCase().includes(query);
+
+    const matchesStatus =
+      bookingStatusFilter === "all" ||
+      booking.status.toLowerCase() === bookingStatusFilter;
+
+    return matchesQuery && matchesStatus;
+  });
 
   const nextBooking = useMemo(() => {
     const now = new Date();
@@ -487,6 +506,57 @@ const PassengerProfile = () => {
 
           {activeTab === "bookings" && (
             <div className="space-y-5">
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-2xl">
+                <div className="grid gap-4 md:grid-cols-[1fr_220px]">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-[0.22em]">
+                      Search Flights
+                    </label>
+                    <div className="relative">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400/70 pointer-events-none">
+                        <Search size={16} />
+                      </div>
+                      <input
+                        type="text"
+                        value={bookingQuery}
+                        onChange={(e) => setBookingQuery(e.target.value)}
+                        placeholder="Flight no, route, or seat"
+                        className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-4 text-sm text-white placeholder:text-gray-500 outline-none focus:border-amber-500/50 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-[0.22em]">
+                      Filter Status
+                    </label>
+                    <div className="relative">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400/70 pointer-events-none">
+                        <Filter size={16} />
+                      </div>
+                      <select
+                        value={bookingStatusFilter}
+                        onChange={(e) => setBookingStatusFilter(e.target.value)}
+                        className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 py-3 pl-11 pr-10 text-sm text-white outline-none focus:border-amber-500/50 transition-all"
+                      >
+                        <option value="all" className="bg-[#0b1220]">
+                          All Statuses
+                        </option>
+                        <option value="confirmed" className="bg-[#0b1220]">
+                          Confirmed
+                        </option>
+                        <option value="cancelled" className="bg-[#0b1220]">
+                          Cancelled
+                        </option>
+                      </select>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                        <ChevronDown size={16} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {bookingsLoading ? (
                 <GlassCard
                   eyebrow="Loading"
@@ -509,8 +579,14 @@ const PassengerProfile = () => {
                     </ActionButton>
                   </div>
                 </GlassCard>
+              ) : filteredBookings.length === 0 ? (
+                <GlassCard
+                  eyebrow="No Matches"
+                  title="No bookings matched your filters"
+                  description="Try another keyword or change the status filter."
+                />
               ) : (
-                bookings.map((booking) => (
+                filteredBookings.map((booking) => (
                   <div
                     key={booking.id}
                     className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[24px] p-6 shadow-2xl hover:bg-white/[0.07] transition-all"
