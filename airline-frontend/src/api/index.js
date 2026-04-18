@@ -97,6 +97,11 @@ export const searchCheckinPassenger = (query) =>
     params: { query },
   });
 
+export const searchCheckinPassengersMulti = (query, limit = 5) =>
+  API.get("/checkin/search/multi", {
+    params: { query, limit },
+  });
+
 export const completeCheckin = (bookingId) =>
   API.post("/checkin/complete", {
     booking_id: bookingId,
