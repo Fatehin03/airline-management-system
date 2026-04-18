@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from "react";
+import { useContext, useMemo, useState, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import {
   searchCheckinPassenger,
+  searchCheckinPassengersMulti,
   completeCheckin,
   printBoardingPass,
   changePassengerSeat,
@@ -41,6 +42,8 @@ const StaffProfile = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResult, setSearchResult] = useState(null);
+  const [searchSuggestions, setSearchSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [toast, setToast] = useState(null);
 
   const assignedFlights = [
@@ -121,6 +124,41 @@ const StaffProfile = () => {
     showToast._timer = window.setTimeout(() => setToast(null), 2600);
   };
 
+  useEffect(() => {
+    const query = searchQuery.trim();
+
+    if (query.length < 2) {
+      setSearchSuggestions([]);
+      setLoadingSuggestions(false);
+      return undefined;
+    }
+
+    let isCancelled = false;
+    setLoadingSuggestions(true);
+
+    const timer = window.setTimeout(async () => {
+      try {
+        const { data } = await searchCheckinPassengersMulti(query, 6);
+        if (!isCancelled) {
+          setSearchSuggestions(data?.results || []);
+        }
+      } catch {
+        if (!isCancelled) {
+          setSearchSuggestions([]);
+        }
+      } finally {
+        if (!isCancelled) {
+          setLoadingSuggestions(false);
+        }
+      }
+    }, 320);
+
+    return () => {
+      isCancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [searchQuery]);
+
   const handleSearch = async (e) => {
     e.preventDefault();
 
@@ -137,6 +175,13 @@ const StaffProfile = () => {
       setSearchResult(null);
       showToast(err.response?.data?.detail || "Passenger not found.", "warning");
     }
+  };
+
+  const selectSuggestion = (suggestion) => {
+    setSearchResult(suggestion);
+    setSearchQuery(suggestion.booking);
+    setSearchSuggestions([]);
+    showToast("Passenger selected from smart search.");
   };
 
   const handleCompleteCheckin = async () => {
@@ -433,6 +478,37 @@ const StaffProfile = () => {
                     Search
                   </button>
                 </form>
+
+                {searchQuery.trim().length >= 2 && (
+                  <div className="mt-3 rounded-2xl border border-white/10 bg-black/30 backdrop-blur-xl">
+                    <div className="px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-gray-400 border-b border-white/10">
+                      Smart search suggestions
+                    </div>
+                    {loadingSuggestions ? (
+                      <p className="px-4 py-3 text-sm text-gray-300">Searching passengers...</p>
+                    ) : searchSuggestions.length ? (
+                      <div className="max-h-52 overflow-auto">
+                        {searchSuggestions.map((item) => (
+                          <button
+                            key={item.booking_id}
+                            type="button"
+                            onClick={() => selectSuggestion(item)}
+                            className="w-full px-4 py-3 text-left border-b border-white/5 last:border-b-0 hover:bg-white/5 transition-colors"
+                          >
+                            <p className="text-sm font-semibold text-white">{item.passenger}</p>
+                            <p className="text-xs text-gray-400">
+                              {item.booking} · {item.flight || "N/A"} · Seat {item.seat}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="px-4 py-3 text-sm text-gray-400">
+                        No quick matches. Press Search for exact lookup.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {searchResult && (
                   <div className="mt-6 rounded-[24px] border border-emerald-400/20 bg-emerald-500/10 p-5">
