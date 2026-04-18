@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import or_
 
 from app.database import get_db
 from app.models.booking import Booking
@@ -24,6 +25,23 @@ class AddBaggageRequest(BaseModel):
     bags: int
 
 
+def parse_booking_query(query: str):
+    normalized = query.strip()
+
+    if not normalized:
+        return None
+
+    compact = normalized.replace(" ", "").replace("-", "")
+
+    if compact.upper().startswith("BK") and compact[2:].isdigit():
+        return int(compact[2:])
+
+    if compact.isdigit():
+        return int(compact)
+
+    return None
+
+
 def serialize_checkin_booking(booking: Booking):
     flight = booking.flight
     user = booking.user
@@ -44,21 +62,17 @@ def serialize_checkin_booking(booking: Booking):
 def search_passenger(query: str, db: Session = Depends(get_db)):
     query = query.strip()
 
-    booking = None
+    if not query:
+        raise HTTPException(status_code=400, detail="Search query cannot be empty")
 
-    if query.upper().startswith("BK") and query[2:].isdigit():
-        booking_id = int(query[2:])
+    booking = None
+    booking_id = parse_booking_query(query)
+
+    if booking_id is not None:
         booking = (
             db.query(Booking)
             .options(joinedload(Booking.flight), joinedload(Booking.user))
             .filter(Booking.id == booking_id)
-            .first()
-        )
-    elif query.isdigit():
-        booking = (
-            db.query(Booking)
-            .options(joinedload(Booking.flight), joinedload(Booking.user))
-            .filter(Booking.id == int(query))
             .first()
         )
     else:
@@ -74,6 +88,58 @@ def search_passenger(query: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Passenger not found")
 
     return serialize_checkin_booking(booking)
+
+
+@checkin_router.get("/search/multi")
+def search_passenger_multi(query: str, limit: int = 5, db: Session = Depends(get_db)):
+    query = query.strip()
+
+    if not query:
+        raise HTTPException(status_code=400, detail="Search query cannot be empty")
+
+    if len(query) < 2:
+        raise HTTPException(status_code=400, detail="Search query must be at least 2 characters")
+
+    limit = max(1, min(limit, 20))
+    booking_id = parse_booking_query(query)
+
+    base_query = (
+        db.query(Booking)
+        .options(joinedload(Booking.flight), joinedload(Booking.user))
+        .join(User, Booking.user_id == User.id)
+    )
+
+    if booking_id is not None:
+        bookings = (
+            base_query.filter(
+                or_(
+                    Booking.id == booking_id,
+                    User.email.ilike(f"%{query}%"),
+                    User.full_name.ilike(f"%{query}%"),
+                )
+            )
+            .order_by(Booking.id.desc())
+            .limit(limit)
+            .all()
+        )
+    else:
+        bookings = (
+            base_query.filter(
+                or_(
+                    User.email.ilike(f"%{query}%"),
+                    User.full_name.ilike(f"%{query}%"),
+                )
+            )
+            .order_by(Booking.id.desc())
+            .limit(limit)
+            .all()
+        )
+
+    return {
+        "query": query,
+        "count": len(bookings),
+        "results": [serialize_checkin_booking(booking) for booking in bookings],
+    }
 
 
 @checkin_router.post("/complete")
