@@ -44,6 +44,9 @@ def serialize_checkin_booking(booking: Booking):
 def search_passenger(query: str, db: Session = Depends(get_db)):
     query = query.strip()
 
+    if not query:
+        raise HTTPException(status_code=400, detail="Search query cannot be empty")
+
     booking = None
 
     if query.upper().startswith("BK") and query[2:].isdigit():
