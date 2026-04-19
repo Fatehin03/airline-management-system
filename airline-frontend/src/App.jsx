@@ -10,6 +10,8 @@ import PassengerProfile from './pages/PassengerProfile';
 import StaffProfile from './pages/StaffProfile';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import AdminLogin from './pages/AdminLogin';
+import AdminProfile from './pages/AdminProfile';
 
 function App() {
   return (
@@ -25,6 +27,7 @@ function App() {
             <Route path="/flights" element={<Flights />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
             
             {/* Protected Routes - Passenger */}
             <Route 
@@ -44,6 +47,16 @@ function App() {
                   <StaffProfile />
                 </ProtectedRoute>
               } 
+            />
+
+            {/* Protected Routes - Admin */}
+            <Route
+              path="/profile/admin"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminProfile />
+                </ProtectedRoute>
+              }
             />
             
             {/* 404 Not Found */}

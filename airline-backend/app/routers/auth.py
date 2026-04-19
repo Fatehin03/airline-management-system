@@ -195,6 +195,48 @@ def login(
         logger.error(f"Login error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
 
+
+@router.post("/admin/login")
+def admin_login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+):
+    user = db.query(User).filter(User.email == form_data.username).first()
+
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+        )
+
+    if (user.role or "").lower() != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This account has been deactivated",
+        )
+
+    access_token = create_access_token(
+        data={
+            "sub": user.email,
+            "role": user.role,
+            "full_name": user.full_name or "",
+            "user_id": user.id,
+        }
+    )
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "role": user.role,
+        "full_name": user.full_name,
+    }
+
 # =========================
 # FORGOT PASSWORD
 # =========================
@@ -263,7 +305,7 @@ def reset_password(data: ResetPasswordSchema, db: Session = Depends(get_db)):
 def update_user_profile(
     user_id: int,
     profile_data: UpdateProfileSchema,
-    current_user: dict = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -274,8 +316,8 @@ def update_user_profile(
         logger.info(f"Profile update request for user_id: {user_id}")
         
         # ── Security: User can only update their own profile ──────────
-        if current_user["user_id"] != user_id:
-            logger.warning(f"Unauthorized profile update attempt by user {current_user['user_id']} for user {user_id}")
+        if current_user.id != user_id:
+            logger.warning(f"Unauthorized profile update attempt by user {current_user.id} for user {user_id}")
             raise HTTPException(
                 status_code=403,
                 detail="Not authorized to update this profile"
