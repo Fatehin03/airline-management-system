@@ -268,7 +268,7 @@ const Login = () => {
                 className="text-blue-300/70 hover:text-blue-300 transition-colors"
               >
                 Go to Admin Portal →
-              </Link>
+              </a>
             </p>
           </div>
         </div>
