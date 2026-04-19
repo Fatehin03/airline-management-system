@@ -29,6 +29,13 @@ export const login = (formData) => {
   return API.post("/auth/login", data);
 };
 
+export const adminLogin = (formData) => {
+  const data = new FormData();
+  data.append("username", formData.email);
+  data.append("password", formData.password);
+  return API.post("/auth/admin/login", data);
+};
+
 // REGISTER
 export const register = (formData) =>
   API.post("/auth/register", {
@@ -97,6 +104,11 @@ export const searchCheckinPassenger = (query) =>
     params: { query },
   });
 
+export const searchCheckinPassengersMulti = (query, limit = 5) =>
+  API.get("/checkin/search/multi", {
+    params: { query, limit },
+  });
+
 export const completeCheckin = (bookingId) =>
   API.post("/checkin/complete", {
     booking_id: bookingId,
@@ -119,5 +131,17 @@ export const addPassengerBaggage = (bookingId, bags) =>
 
 export const getFlightManifest = (flightNumber) =>
   API.get(`/checkin/manifest/${flightNumber}`);
+
+// ADMIN
+export const fetchAdminDashboard = () => API.get("/admin/dashboard");
+export const fetchAdminFlights = () => API.get("/admin/flights");
+export const createAdminFlight = (payload) => API.post("/admin/flights", payload);
+export const updateAdminFlight = (flightId, payload) =>
+  API.put(`/admin/flights/${flightId}`, payload);
+export const deleteAdminFlight = (flightId) => API.delete(`/admin/flights/${flightId}`);
+export const fetchAdminUsers = () => API.get("/admin/users");
+export const updateAdminUserStatus = (userId, isActive) =>
+  API.put(`/admin/users/${userId}/status`, { is_active: isActive });
+export const fetchAdminBookings = () => API.get("/admin/bookings");
 
 export default API;
