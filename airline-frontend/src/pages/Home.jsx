@@ -9,6 +9,7 @@ import {
   Clock,
   Plane,
   Calendar,
+  ChevronDown,
 } from "lucide-react";
 import Lottie from "lottie-react";
 import airplaneAnimation from "../assets/airplane.json";
@@ -339,21 +340,26 @@ const SearchInput = ({ label, value, onChange, options, disabled = false }) => (
     <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">
       {label}
     </label>
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      disabled={disabled}
-      className="w-full appearance-none bg-white/5 border border-white/10 rounded-xl py-3.5 px-4 text-sm text-white focus:border-amber-500/50 transition-all outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      <option value="" className="bg-[#0b1220] text-gray-400">
-        Select option
-      </option>
-      {options.map((option) => (
-        <option key={option.value} value={option.value} className="bg-[#0b1220] text-white">
-          {option.label}
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        className="w-full appearance-none bg-gradient-to-r from-white/[0.07] to-white/[0.03] border border-white/10 rounded-2xl py-3.5 px-4 pr-10 text-sm text-white focus:border-amber-500/50 transition-all outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <option value="" className="bg-[#0b1220] text-gray-400">
+          Select option
         </option>
-      ))}
-    </select>
+        {options.map((option) => (
+          <option key={option.value} value={option.value} className="bg-[#0b1220] text-white">
+            {option.label}
+          </option>
+        ))}
+      </select>
+      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
+        <ChevronDown size={16} />
+      </div>
+    </div>
   </div>
 );
 
@@ -362,16 +368,22 @@ const SearchDateInput = ({ label, value, onChange, onKeyDown, icon }) => (
     <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">
       {label}
     </label>
-    <div className="relative group">
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400/60">
-        {icon}
+    <div className="relative">
+      <div className="w-full bg-gradient-to-r from-white/[0.07] to-white/[0.03] border border-white/10 rounded-2xl px-4 py-3.5 flex items-center justify-between">
+        <div className="flex items-center gap-3 text-gray-300">
+          <span className="text-amber-400/70">{icon}</span>
+          <span className={value ? "text-white" : "text-gray-400"}>
+            {value || "mm/dd/yyyy"}
+          </span>
+        </div>
+        <Calendar size={16} className="text-gray-500" />
       </div>
       <input
         type="date"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={onKeyDown}
-        className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-sm text-white focus:border-amber-500/50 transition-all outline-none [color-scheme:dark]"
+        className="absolute inset-0 opacity-0 cursor-pointer [color-scheme:dark]"
       />
     </div>
   </div>

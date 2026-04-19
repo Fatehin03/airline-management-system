@@ -30,9 +30,14 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(role)) {
+    const redirectByRole = {
+      admin: "/profile/admin",
+      staff: "/profile/staff",
+      passenger: "/profile/passenger",
+    };
     return (
       <Navigate
-        to={role === "staff" ? "/profile/staff" : "/profile/passenger"}
+        to={redirectByRole[role] || "/profile/passenger"}
         replace
       />
     );
