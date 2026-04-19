@@ -196,7 +196,7 @@ const Register = () => {
             </p>
             <p className="text-xs text-gray-600">
               Admin?{' '}
-              <Link to="/admin/login" className="text-[#667eea]/60 hover:text-[#667eea] transition-colors">
+              <a href="#/admin/login" className="text-[#667eea]/60 hover:text-[#667eea] transition-colors">
                 Go to Admin Portal →
               </Link>
             </p>

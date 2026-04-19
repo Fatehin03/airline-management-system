@@ -263,8 +263,8 @@ const Login = () => {
 
             <p className="text-xs text-gray-600">
               Admin?{" "}
-              <Link
-                to="/admin/login"
+              <a
+                href="#/admin/login"
                 className="text-blue-300/70 hover:text-blue-300 transition-colors"
               >
                 Go to Admin Portal →
