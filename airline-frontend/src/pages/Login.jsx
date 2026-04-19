@@ -265,10 +265,12 @@ const Login = () => {
               Admin?{" "}
               <a
                 href="/#/admin/login"
+              <Link
+                to="/admin/login"
                 className="text-blue-300/70 hover:text-blue-300 transition-colors"
               >
                 Go to Admin Portal →
-              </a>
+              </Link>
             </p>
           </div>
         </div>
