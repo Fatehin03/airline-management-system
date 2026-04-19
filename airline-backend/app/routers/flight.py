@@ -6,7 +6,9 @@ from sqlalchemy import asc, desc, func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.core.security import get_current_admin
 from app.models.flight import Flight
+from app.models.user import User
 from app.schemas.flight import FlightOut, FlightCreate
 
 router = APIRouter()
@@ -51,7 +53,11 @@ def get_flights(
 
 
 @router.post("/", response_model=FlightOut)
-def create_flight(flight: FlightCreate, db: Session = Depends(get_db)):
+def create_flight(
+    flight: FlightCreate,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_admin),
+):
     db_flight = Flight(**flight.dict(), available_seats=flight.total_seats)
     db.add(db_flight)
     db.commit()
