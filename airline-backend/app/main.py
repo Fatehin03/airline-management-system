@@ -8,7 +8,7 @@ from app.core.settings import settings
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-from app.routers import auth_router, flight_router, booking_router, checkin_router
+from app.routers import auth_router, flight_router, booking_router, checkin_router, admin_router
 from app.models import User, Flight, Booking
 
 
@@ -63,6 +63,7 @@ app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 app.include_router(flight_router, prefix="/flights", tags=["Flights"])
 app.include_router(booking_router, prefix="/bookings", tags=["Bookings"])
 app.include_router(checkin_router, prefix="/checkin", tags=["Check-In"])
+app.include_router(admin_router, prefix="/admin", tags=["Admin"])
 
 @app.get("/")
 def root():

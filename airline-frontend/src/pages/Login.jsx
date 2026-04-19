@@ -263,12 +263,12 @@ const Login = () => {
 
             <p className="text-xs text-gray-600">
               Admin?{" "}
-              <a
-                href="https://admin.skylink.com"
+              <Link
+                to="/admin/login"
                 className="text-blue-300/70 hover:text-blue-300 transition-colors"
               >
                 Go to Admin Portal →
-              </a>
+              </Link>
             </p>
           </div>
         </div>
